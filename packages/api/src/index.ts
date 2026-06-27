@@ -1,14 +1,10 @@
 import { Hono } from "hono";
+import { strategiesRoutes } from "./routes/strategies.js";
 
 const app = new Hono();
 
-const welcomeStrings = [
-  "Hello Hono!",
-  "To learn more about Hono on Vercel, visit https://vercel.com/docs/frameworks/backend/hono",
-];
+app.get("/", (c) => c.text("Galton API"));
+app.route("/strategies", strategiesRoutes);
 
-app.get("/", (c) => {
-  return c.text(welcomeStrings.join("\n\n"));
-});
-
+export type AppType = typeof app;
 export default app;
