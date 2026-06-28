@@ -11,6 +11,7 @@
     "@tamagui/font-inter": "^2.3.3",
     "@tamagui/portal": "^2.3.3",
     "expo": "~56.0.12",
+    "hono": "^4.12.27",
     "expo-auth-session": "~56.0.14",
     "expo-constants": "~56.0.18",
     "expo-device": "~56.0.4",

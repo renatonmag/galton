@@ -1,31 +1,37 @@
+import { hc, type InferResponseType } from "hono/client";
+import type { AppType } from "@galton/api";
 import { supabase } from "./supabase";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL!;
 
-async function authHeaders(): Promise<HeadersInit> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) return {};
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
+  if (Array.isArray(headers)) return Object.fromEntries(headers);
+  return headers as Record<string, string>;
 }
 
-export type Strategy = { id: string; name: string; createdAt: string };
+export const api = hc<AppType>(BASE_URL, {
+  fetch: async (input, init) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return fetch(input, {
+      ...init,
+      headers: {
+        ...normalizeHeaders(init?.headers),
+        ...(session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {}),
+      },
+    });
+  },
+});
 
-export const strategiesApi = {
-  list: async (): Promise<{ strategies: Strategy[] }> => {
-    const res = await fetch(`${BASE_URL}/strategies`, {
-      headers: await authHeaders(),
-    });
-    return res.json();
-  },
-  create: async (name: string): Promise<{ strategy: Strategy }> => {
-    const res = await fetch(`${BASE_URL}/strategies`, {
-      method: "POST",
-      headers: await authHeaders(),
-      body: JSON.stringify({ name }),
-    });
-    return res.json();
-  },
-};
+export type Strategy = InferResponseType<
+  typeof api.strategies.$get
+>["strategies"][number];
+
+export type Setup = InferResponseType<
+  (typeof api.strategies)[":strategyId"]["setups"]["$get"]
+>["setups"][number];

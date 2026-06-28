@@ -1,21 +1,37 @@
-import { useLocalSearchParams } from "expo-router";
+import { api, type Setup } from "@/lib/api";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import { useCallback, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
-const PLACEHOLDER_SETUPS = [
-  { id: "1", name: "Retorno a méda" },
-  { id: "2", name: "Barra especial" },
-  { id: "3", name: "Reversão" },
-];
-
 export default function EstrategiaDetailScreen() {
-  const { name } = useLocalSearchParams<{ id: string; name: string }>();
+  const router = useRouter();
+  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
+  const [setups, setSetups] = useState<Setup[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      api.strategies[":strategyId"].setups
+        .$get({ param: { strategyId: id } })
+        .then((r) => r.json())
+        .then(({ setups }) => setSetups(setups));
+    }, [id]),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.avatar} />
+        {router.canGoBack() && (
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <ChevronLeft color="#fff" size={22} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.content}>
@@ -23,20 +39,38 @@ export default function EstrategiaDetailScreen() {
         <Text style={styles.sectionLabel}>Setups</Text>
 
         <FlatList
-          data={PLACEHOLDER_SETUPS}
+          data={setups}
           keyExtractor={(item) => item.id}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
-            <View style={styles.setupCard}>
+            <TouchableOpacity
+              style={styles.setupCard}
+              onPress={() =>
+                router.push({
+                  pathname: "/(tabs)/estrategias/[id]/[setupId]",
+                  params: { id, setupId: item.id, name },
+                })
+              }
+              activeOpacity={0.8}
+            >
               <Text style={styles.setupCardText}>{item.name}</Text>
-            </View>
+            </TouchableOpacity>
           )}
         />
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)/estrategias/[id]/[setupId]",
+              params: { id, setupId: "novo", name },
+            })
+          }
+          activeOpacity={0.8}
+        >
           <Text style={styles.buttonText}>Novo setup</Text>
         </TouchableOpacity>
       </View>
@@ -61,6 +95,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: BLUE,
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: {
     flex: 1,

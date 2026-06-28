@@ -1,4 +1,4 @@
-import { strategiesApi } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
@@ -17,7 +17,7 @@ export default function NovaEstrategiaScreen() {
     const strategyName = name.trim() || placeholder;
     setLoading(true);
     try {
-      await strategiesApi.create(strategyName);
+      await api.strategies.$post({ json: { name: strategyName } });
       router.back();
     } finally {
       setLoading(false);

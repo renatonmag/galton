@@ -1,6 +1,7 @@
-import { strategiesApi, type Strategy } from "@/lib/api";
+import { api, type Strategy } from "@/lib/api";
 import { useFocusEffect } from "expo-router";
 import { useRouter } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,14 +13,22 @@ export default function EstrategiasScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      strategiesApi.list().then(({ strategies }) => setStrategies(strategies));
+      api.strategies.$get().then((r) => r.json()).then(({ strategies }) => setStrategies(strategies));
     }, []),
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.avatar} />
+        {router.canGoBack() && (
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <ChevronLeft color="#fff" size={22} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.content}>
@@ -82,6 +91,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: BLUE,
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: {
     flex: 1,

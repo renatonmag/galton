@@ -92,7 +92,9 @@ export default function RootLayout() {
       config={tamaguiConfig}
       defaultTheme={colorScheme ?? "light"}
     >
-      <Stack />
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
       <StatusBar style="auto" />
     </TamaguiProvider>
   );
