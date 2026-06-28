@@ -15,6 +15,7 @@ app.get("/", async (c) => {
 app.post("/", async (c) => {
   const userId = c.get("userId");
   const { name } = await c.req.json<{ name: string }>();
+  console.log("Creating strategy", userId, name);
   const strategy = await strategiesService.create(userId, name);
   return c.json({ strategy }, 201);
 });
@@ -29,7 +30,11 @@ app.get("/:id", async (c) => {
 app.patch("/:id", async (c) => {
   const userId = c.get("userId");
   const { name } = await c.req.json<{ name: string }>();
-  const strategy = await strategiesService.update(c.req.param("id"), userId, name);
+  const strategy = await strategiesService.update(
+    c.req.param("id"),
+    userId,
+    name,
+  );
   if (!strategy) return c.json({ error: "Not found" }, 404);
   return c.json({ strategy });
 });

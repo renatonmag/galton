@@ -13,6 +13,15 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="estrategias"
+        options={{
+          title: "Estrategias",
+          tabBarIcon: ({ color }) => (
+            <SymbolView name="list.clipboard.fill" tintColor={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
