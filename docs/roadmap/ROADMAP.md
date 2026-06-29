@@ -95,12 +95,10 @@ POST /sessions/:id/log-entries/voice  (multipart: audio file)
 
 ### Mobile
 
-- **Mic button** on Session screen (replaces or sits beside the manual "+" button)
+- **Mic button** on Session screen. Press button to start recording audio.
 - Records audio using `expo-audio`
 - Sends to `/voice` endpoint, shows loading state
-- On response: opens Log Entry form pre-filled (setupId pre-selected, Characteristics pre-toggled)
-- Low-confidence matches show a warning banner; no match shows an error with fallback to manual form
-- User can edit any field before confirming
+- On response: Show a blue pill with the setup name on a screen before adding to the session setups list.
 
 ### Guardrails
 

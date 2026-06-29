@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { authMiddleware, type AppEnv } from "../middleware/auth.js";
 import { sessionsService } from "../services/sessions.js";
 import { logEntriesService } from "../services/logEntries.js";
+import { voiceService } from "../services/voice.js";
 
 const app = new Hono<AppEnv>();
 
@@ -31,6 +32,22 @@ app.delete("/:id", async (c) => {
   const session = await sessionsService.delete(c.req.param("id"), userId);
   if (!session) return c.json({ error: "Not found" }, 404);
   return c.json({ session });
+});
+
+app.post("/:sessionId/log-entries/voice", async (c) => {
+  const userId = c.get("userId");
+  const sessionId = c.req.param("sessionId");
+
+  const formData = await c.req.formData();
+  const audio = formData.get("audio");
+
+  if (!audio || !(audio instanceof File)) {
+    return c.json({ error: "audio field required" }, 400);
+  }
+
+  const result = await voiceService.processVoiceEntry(userId, sessionId, audio);
+  if (!result) return c.json({ error: "Session not found" }, 404);
+  return c.json(result);
 });
 
 app.post("/:sessionId/log-entries", async (c) => {

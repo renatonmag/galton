@@ -8,11 +8,14 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/devtools": "^1.0.0",
+    "@ai-sdk/openai": "^4.0.3",
     "@supabase/supabase-js": "^2.50.0",
     "ai": "^7.0.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.27",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
