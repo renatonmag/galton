@@ -35,3 +35,7 @@ export type Strategy = InferResponseType<
 export type Setup = InferResponseType<
   (typeof api.strategies)[":strategyId"]["setups"]["$get"]
 >["setups"][number];
+
+export type Characteristic = InferResponseType<
+  (typeof api.strategies)[":strategyId"]["setups"][":setupId"]["characteristics"]["$get"]
+>["characteristics"][number];

@@ -1,8 +1,9 @@
-import { api } from "@/lib/api";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { api, type Characteristic } from "@/lib/api";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { ChevronLeft, SquarePen, Trash } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -24,6 +25,8 @@ export default function SetupDetailScreen() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [characteristics, setCharacteristics] = useState<Characteristic[]>([]);
+  const [charEditMode, setCharEditMode] = useState(false);
 
   const savedName = useRef("");
   const savedDescription = useRef("");
@@ -45,6 +48,32 @@ export default function SetupDetailScreen() {
         savedDescription.current = setup.description ?? "";
       });
   }, [setupId, strategyId, isNew]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isNew) return;
+      api.strategies[":strategyId"].setups[":setupId"].characteristics
+        .$get({ param: { strategyId, setupId } })
+        .then((r) => r.json())
+        .then(({ characteristics }) => setCharacteristics(characteristics));
+    }, [setupId, strategyId, isNew])
+  );
+
+  function deleteCharacteristic(charId: string, charName: string) {
+    Alert.alert("Excluir característica", `Deseja excluir "${charName}"?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          await api.strategies[":strategyId"].setups[":setupId"].characteristics[":id"].$delete({
+            param: { strategyId, setupId, id: charId },
+          });
+          setCharacteristics((prev) => prev.filter((c) => c.id !== charId));
+        },
+      },
+    ]);
+  }
 
   async function handleSave() {
     setLoading(true);
@@ -113,9 +142,64 @@ export default function SetupDetailScreen() {
           textAlignVertical="top"
         />
 
-        <Text style={styles.sectionTitle}>Caracteristicas</Text>
+        <View style={styles.charTitleRow}>
+          <Text style={styles.sectionTitle}>Caracteristicas</Text>
+          {characteristics.length > 0 && (
+            <TouchableOpacity onPress={() => setCharEditMode((v) => !v)} activeOpacity={0.7}>
+              <SquarePen color={charEditMode ? BLUE : DARK_BLUE} size={20} />
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+        {characteristics.map((c) =>
+          c.type === "multiple_choice" ? (
+            <View key={c.id}>
+              <View style={styles.charTitleRow}>
+                <Text style={styles.characteristicTitle}>{c.name}</Text>
+                {charEditMode && (
+                  <TouchableOpacity
+                    onPress={() => deleteCharacteristic(c.id, c.name)}
+                    hitSlop={8}
+                    activeOpacity={0.7}
+                  >
+                    <Trash color="#E57373" size={18} />
+                  </TouchableOpacity>
+                )}
+              </View>
+              {(c.options ?? []).map((opt, i) => (
+                <View key={i} style={styles.optionRow}>
+                  <View style={styles.radioIcon} />
+                  <Text style={styles.optionText}>{opt}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View key={c.id} style={styles.optionRow}>
+              <View style={styles.checkboxIcon} />
+              <Text style={[styles.optionText, { flex: 1 }]}>{c.name}</Text>
+              {charEditMode && (
+                <TouchableOpacity
+                  onPress={() => deleteCharacteristic(c.id, c.name)}
+                  hitSlop={8}
+                  activeOpacity={0.7}
+                >
+                  <Trash color="#E57373" size={18} />
+                </TouchableOpacity>
+              )}
+            </View>
+          )
+        )}
+
+        <TouchableOpacity
+          style={styles.addButton}
+          activeOpacity={0.8}
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)/estrategias/[id]/nova-caracteristica",
+              params: { id: strategyId, setupId, setupName: name },
+            })
+          }
+        >
           <Text style={styles.addButtonText}>Adicionar caracteristica</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -190,6 +274,39 @@ const styles = StyleSheet.create({
     color: DARK_BLUE,
     marginTop: 8,
     marginBottom: 4,
+  },
+  charTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  characteristicTitle: {
+    fontSize: 13,
+    color: DARK_BLUE,
+    fontWeight: "500",
+    marginTop: 6,
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 3,
+  },
+  radioIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: BLUE,
+  },
+  checkboxIcon: {
+    width: 14,
+    height: 14,
+    borderRadius: 3,
+    backgroundColor: BLUE,
+  },
+  optionText: {
+    fontSize: 14,
+    color: DARK_BLUE,
   },
   addButton: {
     backgroundColor: BLUE,

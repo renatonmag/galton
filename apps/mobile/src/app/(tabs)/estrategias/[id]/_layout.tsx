@@ -5,6 +5,7 @@ export default function SetupLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[setupId]" options={{ headerShown: false }} />
+      <Stack.Screen name="nova-caracteristica" options={{ headerShown: false }} />
     </Stack>
   );
 }
