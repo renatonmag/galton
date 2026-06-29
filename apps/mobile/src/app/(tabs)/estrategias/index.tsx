@@ -1,15 +1,34 @@
 import { api, type Strategy } from "@/lib/api";
 import { useFocusEffect } from "expo-router";
 import { useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, SquarePen, Trash } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
 export default function EstrategiasScreen() {
   const router = useRouter();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [editMode, setEditMode] = useState(false);
+
+  const deleteStrategy = useCallback((id: string, name: string) => {
+    Alert.alert(
+      "Excluir estratégia",
+      `Deseja excluir "${name}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            await api.strategies[":id"].$delete({ param: { id } });
+            setStrategies((prev) => prev.filter((s) => s.id !== id));
+          },
+        },
+      ],
+    );
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -32,7 +51,12 @@ export default function EstrategiasScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Estrategias</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Estrategias</Text>
+          <TouchableOpacity onPress={() => setEditMode((v) => !v)} activeOpacity={0.7}>
+            <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
+          </TouchableOpacity>
+        </View>
 
         <FlatList
           data={strategies}
@@ -50,7 +74,16 @@ export default function EstrategiasScreen() {
               }
               activeOpacity={0.8}
             >
-              <Text style={styles.strategyButtonText}>{item.name}</Text>
+              <Text style={[styles.strategyButtonText, { flex: 1 }]}>{item.name}</Text>
+              {editMode && (
+                <TouchableOpacity
+                  onPress={() => deleteStrategy(item.id, item.name)}
+                  hitSlop={8}
+                  activeOpacity={0.7}
+                >
+                  <Trash color="#E57373" size={18} />
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
           )}
         />
@@ -99,11 +132,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
   title: {
     fontSize: 22,
     fontWeight: "700",
     color: DARK_BLUE,
-    marginBottom: 20,
   },
   list: {
     flex: 1,
@@ -116,6 +154,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
   },
   strategyButtonText: {
     fontSize: 16,

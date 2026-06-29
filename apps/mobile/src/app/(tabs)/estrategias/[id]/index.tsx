@@ -1,8 +1,8 @@
 import { api, type Setup } from "@/lib/api";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, SquarePen, Trash } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
@@ -10,6 +10,27 @@ export default function EstrategiaDetailScreen() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [setups, setSetups] = useState<Setup[]>([]);
+  const [editMode, setEditMode] = useState(false);
+
+  const deleteSetup = useCallback((setupId: string, setupName: string) => {
+    Alert.alert(
+      "Excluir setup",
+      `Deseja excluir "${setupName}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            await api.strategies[":strategyId"].setups[":id"].$delete({
+              param: { strategyId: id, id: setupId },
+            });
+            setSetups((prev) => prev.filter((s) => s.id !== setupId));
+          },
+        },
+      ],
+    );
+  }, [id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -35,7 +56,12 @@ export default function EstrategiaDetailScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>{name}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{name}</Text>
+          <TouchableOpacity onPress={() => setEditMode((v) => !v)} activeOpacity={0.7}>
+            <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.sectionLabel}>Setups</Text>
 
         <FlatList
@@ -54,7 +80,16 @@ export default function EstrategiaDetailScreen() {
               }
               activeOpacity={0.8}
             >
-              <Text style={styles.setupCardText}>{item.name}</Text>
+              <Text style={[styles.setupCardText, { flex: 1 }]}>{item.name}</Text>
+              {editMode && (
+                <TouchableOpacity
+                  onPress={() => deleteSetup(item.id, item.name)}
+                  hitSlop={8}
+                  activeOpacity={0.7}
+                >
+                  <Trash color="#E57373" size={18} />
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
           )}
         />
@@ -103,11 +138,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
   title: {
     fontSize: 22,
     fontWeight: "700",
     color: DARK_BLUE,
-    marginBottom: 16,
   },
   sectionLabel: {
     fontSize: 16,
@@ -125,6 +165,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
   },
   setupCardText: {
     fontSize: 16,
