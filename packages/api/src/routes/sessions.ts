@@ -45,9 +45,14 @@ app.post("/:sessionId/log-entries/voice", async (c) => {
     return c.json({ error: "audio field required" }, 400);
   }
 
-  const result = await voiceService.processVoiceEntry(userId, sessionId, audio);
-  if (!result) return c.json({ error: "Session not found" }, 404);
-  return c.json(result);
+  try {
+    const result = await voiceService.processVoiceEntry(userId, sessionId, audio);
+    if (!result) return c.json({ error: "Session not found" }, 404);
+    return c.json(result);
+  } catch (err) {
+    console.error("Voice processing error:", err);
+    return c.json({ error: "Voice processing failed" }, 500);
+  }
 });
 
 app.post("/:sessionId/log-entries", async (c) => {

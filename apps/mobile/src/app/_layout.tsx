@@ -30,12 +30,12 @@ export default function RootLayout() {
 
   useEffect(() => {
     const handleUrl = async (url: string) => {
-      console.log("[auth] deep link url:", url);
       const parsed = Linking.parse(url);
       const code = parsed.queryParams?.code;
       if (typeof code === "string") {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) console.error("[auth] exchangeCodeForSession error:", error.message);
+        if (error)
+          console.error("[auth] exchangeCodeForSession error:", error.message);
         return;
       }
       // Fallback: implicit flow — tokens in hash fragment
@@ -45,7 +45,10 @@ export default function RootLayout() {
         const access_token = hashParams.get("access_token");
         const refresh_token = hashParams.get("refresh_token");
         if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          const { error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
           if (error) console.error("[auth] setSession error:", error.message);
         }
       }
@@ -64,7 +67,6 @@ export default function RootLayout() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      console.log("session", session);
       setLoading(false);
     });
 
@@ -72,7 +74,6 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      console.log("session 2", session);
     });
     return () => subscription.unsubscribe();
   }, []);

@@ -1,12 +1,81 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { AudioLines, ChevronLeft } from "lucide-react-native";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { AudioLines, ChevronLeft, Square } from "lucide-react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  cancelAnimation,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
+import { requestRecordingPermissionsAsync, useAudioRecorder, RecordingPresets } from "expo-audio";
+import { uploadVoice } from "@/lib/api";
+
+type RecordingState = "idle" | "recording" | "uploading";
 
 export default function SessionScreen() {
   const router = useRouter();
-  const { name } = useLocalSearchParams<{ name: string }>();
+  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+
+  const pulseOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    if (recordingState === "recording") {
+      pulseOpacity.value = withRepeat(withTiming(0.4, { duration: 700 }), -1, true);
+    } else {
+      cancelAnimation(pulseOpacity);
+      pulseOpacity.value = 1;
+    }
+  }, [recordingState, pulseOpacity]);
+
+  const fabAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
+
+  const handleFabPress = useCallback(async () => {
+    if (recordingState === "uploading") return;
+
+    if (recordingState === "idle") {
+      const { granted } = await requestRecordingPermissionsAsync();
+      if (!granted) {
+        Alert.alert("Permissão necessária", "Autorize o acesso ao microfone nas configurações.");
+        return;
+      }
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setRecordingState("recording");
+      return;
+    }
+
+    // recording → stop and upload
+    await recorder.stop();
+    const uri = recorder.uri;
+    if (!uri) {
+      setRecordingState("idle");
+      return;
+    }
+    setRecordingState("uploading");
+    try {
+      const prefill = await uploadVoice(id, uri, "audio/m4a");
+      router.push({
+        pathname: "/(tabs)/sessoes/[id]/voice-match",
+        params: { id, name, prefill: JSON.stringify(prefill) },
+      });
+    } catch (err) {
+      console.error("[Voice] upload/navigation error:", err);
+      Alert.alert("Erro", "Não foi possível processar o áudio. Tente novamente.");
+    } finally {
+      setRecordingState("idle");
+    }
+  }, [recordingState, recorder, id, name, router]);
+
+  const fabBg =
+    recordingState === "recording" ? "#E53E3E" : BLUE;
 
   return (
     <View style={styles.root}>
@@ -30,9 +99,22 @@ export default function SessionScreen() {
         </View>
       </SafeAreaView>
 
-      <TouchableOpacity style={styles.fab} onPress={() => {}} activeOpacity={0.8}>
-        <AudioLines color="#fff" size={28} />
-      </TouchableOpacity>
+      <Animated.View style={[styles.fab, { backgroundColor: fabBg }, fabAnimatedStyle]}>
+        <TouchableOpacity
+          style={styles.fabInner}
+          onPress={handleFabPress}
+          activeOpacity={0.8}
+          disabled={recordingState === "uploading"}
+        >
+          {recordingState === "uploading" ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : recordingState === "recording" ? (
+            <Square color="#fff" size={26} fill="#fff" />
+          ) : (
+            <AudioLines color="#fff" size={28} />
+          )}
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
@@ -82,7 +164,13 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: BLUE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fabInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -1,9 +1,9 @@
-import { generateObject, transcribe } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { z } from "zod";
+import { generateObject, transcribe } from "ai";
 import { and, asc, eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "../db/index.js";
-import { sessions, setups, strategies, characteristics } from "../db/schema.js";
+import { characteristics, sessions, setups, strategies } from "../db/schema.js";
 
 const prefillSchema = z.object({
   setupId: z.string().uuid().nullable(),
@@ -55,7 +55,12 @@ export const voiceService = {
       {
         name: string;
         description: string | null;
-        chars: { id: string; name: string; type: string; options: string[] | null }[];
+        chars: {
+          id: string;
+          name: string;
+          type: string;
+          options: string[] | null;
+        }[];
       }
     >();
 
@@ -81,17 +86,18 @@ export const voiceService = {
     const { text: transcription } = await transcribe({
       model: openai.transcription("whisper-1"),
       audio: new Uint8Array(audioBuffer),
-      mimeType: (audio.type || "audio/mp4") as Parameters<typeof transcribe>[0]["mimeType"],
+      mimeType: (audio.type || "audio/mp4") as Parameters<
+        typeof transcribe
+      >[0]["mimeType"],
     });
 
     const setupLines = [...setupMap.entries()]
       .map(([id, s]) => {
         const charLines = s.chars
           .map((c) => {
-            const opts =
-              c.options?.length
-                ? `, Options: [${c.options.map((o) => `"${o}"`).join(", ")}]`
-                : "";
+            const opts = c.options?.length
+              ? `, Options: [${c.options.map((o) => `"${o}"`).join(", ")}]`
+              : "";
             return `    - ID: ${c.id}, Name: "${c.name}", Type: ${c.type}${opts}`;
           })
           .join("\n");
@@ -125,7 +131,9 @@ Instructions:
     return {
       ...object,
       transcription,
-      setupName: object.setupId ? (setupMap.get(object.setupId)?.name ?? null) : null,
+      setupName: object.setupId
+        ? (setupMap.get(object.setupId)?.name ?? null)
+        : null,
     };
   },
 };
