@@ -22,6 +22,15 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="sessoes"
+        options={{
+          title: "Sessões",
+          tabBarIcon: ({ color }) => (
+            <SymbolView name="calendar" tintColor={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

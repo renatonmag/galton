@@ -75,7 +75,7 @@ POST /sessions/:id/log-entries/voice  (multipart: audio file)
 - Accepts `multipart/form-data` with `audio` field
 - Whisper → transcript text
 - GPT call with:
-  - System prompt: all user Setups + their Characteristics (names, types, options)
+  - System prompt: all user Setups + Descriptions + their Characteristics (names and options)
   - User message: transcript
   - Structured output schema:
 
@@ -83,22 +83,20 @@ POST /sessions/:id/log-entries/voice  (multipart: audio file)
 {
   setupId: string | null,          // UUID of best matching Setup, null if no match
   confidence: "high" | "low",
-  decision: "TRADE" | "NO_TRADE" | null,
   characteristics: {
     characteristicId: string,
     value: boolean | string,       // boolean for boolean type, option string for multiple_choice
   }[],
   comment: string | null,          // extracted free-text note
-  raw_transcript: string,
 }
 ```
 
-- Returns the object above; no Log Entry is written yet (user must confirm on screen)
+- Returns the object above; no Log Entry is written yet, show setup name (user must confirm on screen)
 
 ### Mobile
 
 - **Mic button** on Session screen (replaces or sits beside the manual "+" button)
-- Records audio using `expo-av`
+- Records audio using `expo-audio`
 - Sends to `/voice` endpoint, shows loading state
 - On response: opens Log Entry form pre-filled (setupId pre-selected, Characteristics pre-toggled)
 - Low-confidence matches show a warning banner; no match shows an error with fallback to manual form
