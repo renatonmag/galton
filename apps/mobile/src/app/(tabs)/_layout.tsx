@@ -14,7 +14,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="estrategias"
+        name="strategies"
         options={{
           title: "Estrategias",
           tabBarIcon: ({ color }) => (
@@ -23,7 +23,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="sessoes"
+        name="sessions"
         options={{
           title: "Sessões",
           tabBarIcon: ({ color }) => (

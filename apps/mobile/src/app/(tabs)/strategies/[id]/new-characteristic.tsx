@@ -12,9 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
-type TipoValue = "multiple_choice" | "boolean";
+type CharacteristicTypeValue = "multiple_choice" | "boolean";
 
-export default function NovaCaracteristicaScreen() {
+export default function NewCharacteristicScreen() {
   const router = useRouter();
   const { id: strategyId, setupId, setupName } = useLocalSearchParams<{
     id: string;
@@ -23,7 +23,7 @@ export default function NovaCaracteristicaScreen() {
   }>();
 
   const [title, setTitle] = useState("");
-  const [tipo, setTipo] = useState<TipoValue>("multiple_choice");
+  const [characteristicType, setCharacteristicType] = useState<CharacteristicTypeValue>("multiple_choice");
   const [alternatives, setAlternatives] = useState<string[]>([""]);
   const [loading, setLoading] = useState(false);
 
@@ -42,9 +42,9 @@ export default function NovaCaracteristicaScreen() {
         param: { strategyId, setupId },
         json: {
           name: title.trim() || "Nova característica",
-          type: tipo,
+          type: characteristicType,
           options:
-            tipo === "multiple_choice"
+            characteristicType === "multiple_choice"
               ? alternatives.filter((a) => a.trim())
               : undefined,
           position: 0,
@@ -91,15 +91,15 @@ export default function NovaCaracteristicaScreen() {
           <TouchableOpacity
             style={[
               styles.segmentOption,
-              tipo === "multiple_choice" && styles.segmentOptionActive,
+              characteristicType === "multiple_choice" && styles.segmentOptionActive,
             ]}
-            onPress={() => setTipo("multiple_choice")}
+            onPress={() => setCharacteristicType("multiple_choice")}
             activeOpacity={0.8}
           >
             <Text
               style={[
                 styles.segmentText,
-                tipo === "multiple_choice" && styles.segmentTextActive,
+                characteristicType === "multiple_choice" && styles.segmentTextActive,
               ]}
             >
               Múltipla escolha
@@ -108,15 +108,15 @@ export default function NovaCaracteristicaScreen() {
           <TouchableOpacity
             style={[
               styles.segmentOption,
-              tipo === "boolean" && styles.segmentOptionActive,
+              characteristicType === "boolean" && styles.segmentOptionActive,
             ]}
-            onPress={() => setTipo("boolean")}
+            onPress={() => setCharacteristicType("boolean")}
             activeOpacity={0.8}
           >
             <Text
               style={[
                 styles.segmentText,
-                tipo === "boolean" && styles.segmentTextActive,
+                characteristicType === "boolean" && styles.segmentTextActive,
               ]}
             >
               Única

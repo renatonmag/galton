@@ -63,7 +63,7 @@ export default function SessionScreen() {
     try {
       const prefill = await uploadVoice(id, uri, "audio/m4a");
       router.push({
-        pathname: "/(tabs)/sessoes/[id]/voice-match",
+        pathname: "/(tabs)/sessions/[id]/voice-match",
         params: { id, name, prefill: JSON.stringify(prefill) },
       });
     } catch (err) {

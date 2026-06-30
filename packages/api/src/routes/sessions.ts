@@ -55,6 +55,14 @@ app.post("/:sessionId/log-entries/voice", async (c) => {
   }
 });
 
+app.get("/:sessionId/log-entries", async (c) => {
+  const userId = c.get("userId");
+  const sessionId = c.req.param("sessionId");
+  const result = await logEntriesService.list(sessionId, userId);
+  if (!result) return c.json({ error: "Not found" }, 404);
+  return c.json({ logEntries: result });
+});
+
 app.post("/:sessionId/log-entries", async (c) => {
   const userId = c.get("userId");
   const sessionId = c.req.param("sessionId");

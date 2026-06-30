@@ -1,5 +1,9 @@
 @AGENTS.md
 
+# Communication
+
+Always write in English only. Never mix in Portuguese or any other language.
+
 # Tech Stack
 
 **Monorepo** with two packages: `apps/mobile` (Expo app) and `packages/api` (Hono backend).

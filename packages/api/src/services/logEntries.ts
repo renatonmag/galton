@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { logEntries, logEntryCharacteristics, sessions } from "../db/schema.js";
+import { logEntries, logEntryCharacteristics, sessions, setups } from "../db/schema.js";
 
 type CharacteristicInput = { characteristicId: string; value: string };
 
@@ -25,8 +25,9 @@ export const logEntriesService = {
     if (!owned[0]) return undefined;
 
     return db
-      .select(logEntryColumns)
+      .select({ ...logEntryColumns, setupName: setups.name })
       .from(logEntries)
+      .leftJoin(setups, eq(logEntries.setupId, setups.id))
       .where(eq(logEntries.sessionId, sessionId));
   },
 

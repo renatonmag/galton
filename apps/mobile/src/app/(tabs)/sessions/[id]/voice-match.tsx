@@ -1,16 +1,44 @@
+import { useCallback, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { Check, ChevronLeft, X } from "lucide-react-native";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
-import type { VoicePrefill } from "@/lib/api";
+import { api, type VoicePrefill } from "@/lib/api";
 
 export default function VoiceMatchScreen() {
   const router = useRouter();
-  const { name, prefill: prefillJson } = useLocalSearchParams<{ name: string; prefill: string }>();
+  const { id, name, prefill: prefillJson } = useLocalSearchParams<{ id: string; name: string; prefill: string }>();
   const prefill: VoicePrefill = JSON.parse(prefillJson ?? "{}");
+  const [submitting, setSubmitting] = useState(false);
 
   const confidenceColor = prefill.confidence === "high" ? "#38A169" : "#DD6B20";
+  const canSubmit = !!prefill.setupId && !submitting;
+
+  const createLogEntry = useCallback(
+    async (decision: "TRADE" | "NO_TRADE") => {
+      if (!prefill.setupId || submitting) return;
+      setSubmitting(true);
+      try {
+        const res = await api.sessions[":sessionId"]["log-entries"]["$post"]({
+          param: { sessionId: id },
+          json: {
+            setupId: prefill.setupId,
+            decision,
+            characteristics: prefill.characteristics.map((c) => ({
+              characteristicId: c.characteristicId,
+              value: String(c.value),
+            })),
+            ...(prefill.comment ? { comment: prefill.comment } : {}),
+          },
+        });
+        if (res.ok) router.back();
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [id, prefill, submitting, router],
+  );
 
   return (
     <View style={styles.root}>
@@ -76,18 +104,44 @@ export default function VoiceMatchScreen() {
         </ScrollView>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.back()} activeOpacity={0.8}>
-            <Text style={styles.secondaryBtnText}>Tentar novamente</Text>
-          </TouchableOpacity>
           <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => {
-              // TODO: navigate to log-entry form (Phase 1)
-              router.back();
-            }}
+            style={styles.secondaryBtn}
+            onPress={() => router.back()}
             activeOpacity={0.8}
           >
-            <Text style={styles.primaryBtnText}>Confirmar</Text>
+            <Text style={styles.secondaryBtnText}>Tentar novamente</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.decisionCard, styles.tradeCard, !canSubmit && styles.disabledCard]}
+            onPress={() => createLogEntry("TRADE")}
+            activeOpacity={0.8}
+            disabled={!canSubmit}
+          >
+            <View style={styles.decisionLeft}>
+              <Text style={[styles.decisionLabel, styles.tradeText]}>TRADE</Text>
+              <Text style={styles.decisionSetup}>{prefill.setupName ?? "–"}</Text>
+            </View>
+            <View style={styles.decisionRight}>
+              <Check color="#276749" size={18} />
+              <Text style={[styles.decisionPct, styles.tradeText]}>–%</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.decisionCard, styles.noTradeCard, !canSubmit && styles.disabledCard]}
+            onPress={() => createLogEntry("NO_TRADE")}
+            activeOpacity={0.8}
+            disabled={!canSubmit}
+          >
+            <View style={styles.decisionLeft}>
+              <Text style={[styles.decisionLabel, styles.noTradeText]}>NO TRADE</Text>
+              <Text style={styles.decisionSetup}>{prefill.setupName ?? "–"}</Text>
+            </View>
+            <View style={styles.decisionRight}>
+              <X color="#9B2C2C" size={18} />
+              <Text style={[styles.decisionPct, styles.noTradeText]}>–%</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -212,15 +266,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   actions: {
-    flexDirection: "row",
     paddingHorizontal: 20,
     paddingBottom: 24,
     paddingTop: 12,
-    gap: 12,
+    gap: 10,
   },
   secondaryBtn: {
-    flex: 1,
-    height: 50,
+    height: 46,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: BLUE,
@@ -232,17 +284,47 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: BLUE,
   },
-  primaryBtn: {
-    flex: 1,
-    height: 50,
+  decisionCard: {
     borderRadius: 12,
-    backgroundColor: BLUE,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
   },
-  primaryBtnText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#fff",
+  tradeCard: {
+    backgroundColor: "#C6F6D5",
+  },
+  noTradeCard: {
+    backgroundColor: "#FED7D7",
+  },
+  disabledCard: {
+    opacity: 0.5,
+  },
+  decisionLeft: {
+    gap: 2,
+  },
+  decisionLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  decisionSetup: {
+    fontSize: 13,
+    color: "#555",
+  },
+  decisionRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  decisionPct: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  tradeText: {
+    color: "#276749",
+  },
+  noTradeText: {
+    color: "#9B2C2C",
   },
 });

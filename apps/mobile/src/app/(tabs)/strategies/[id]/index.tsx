@@ -1,39 +1,44 @@
-import { api, type Strategy } from "@/lib/api";
-import { useFocusEffect } from "expo-router";
-import { useRouter } from "expo-router";
+import { api, type Setup } from "@/lib/api";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft, SquarePen, Trash } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
-export default function EstrategiasScreen() {
+export default function StrategyDetailScreen() {
   const router = useRouter();
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
+  const [setups, setSetups] = useState<Setup[]>([]);
   const [editMode, setEditMode] = useState(false);
 
-  const deleteStrategy = useCallback((id: string, name: string) => {
+  const deleteSetup = useCallback((setupId: string, setupName: string) => {
     Alert.alert(
-      "Excluir estratégia",
-      `Deseja excluir "${name}"?`,
+      "Excluir setup",
+      `Deseja excluir "${setupName}"?`,
       [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Excluir",
           style: "destructive",
           onPress: async () => {
-            await api.strategies[":id"].$delete({ param: { id } });
-            setStrategies((prev) => prev.filter((s) => s.id !== id));
+            await api.strategies[":strategyId"].setups[":id"].$delete({
+              param: { strategyId: id, id: setupId },
+            });
+            setSetups((prev) => prev.filter((s) => s.id !== setupId));
           },
         },
       ],
     );
-  }, []);
+  }, [id]);
 
   useFocusEffect(
     useCallback(() => {
-      api.strategies.$get().then((r) => r.json()).then(({ strategies }) => setStrategies(strategies));
-    }, []),
+      api.strategies[":strategyId"].setups
+        .$get({ param: { strategyId: id } })
+        .then((r) => r.json())
+        .then(({ setups }) => setSetups(setups));
+    }, [id]),
   );
 
   return (
@@ -52,32 +57,33 @@ export default function EstrategiasScreen() {
 
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Estrategias</Text>
+          <Text style={styles.title}>{name}</Text>
           <TouchableOpacity onPress={() => setEditMode((v) => !v)} activeOpacity={0.7}>
             <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
           </TouchableOpacity>
         </View>
+        <Text style={styles.sectionLabel}>Setups</Text>
 
         <FlatList
-          data={strategies}
+          data={setups}
           keyExtractor={(item) => item.id}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.strategyButton}
+              style={styles.setupCard}
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/estrategias/[id]",
-                  params: { id: item.id, name: item.name },
+                  pathname: "/(tabs)/strategies/[id]/[setupId]",
+                  params: { id, setupId: item.id, name },
                 })
               }
               activeOpacity={0.8}
             >
-              <Text style={[styles.strategyButtonText, { flex: 1 }]}>{item.name}</Text>
+              <Text style={[styles.setupCardText, { flex: 1 }]}>{item.name}</Text>
               {editMode && (
                 <TouchableOpacity
-                  onPress={() => deleteStrategy(item.id, item.name)}
+                  onPress={() => deleteSetup(item.id, item.name)}
                   hitSlop={8}
                   activeOpacity={0.7}
                 >
@@ -94,13 +100,13 @@ export default function EstrategiasScreen() {
           style={styles.button}
           onPress={() =>
             router.push({
-              pathname: "/(tabs)/estrategias/nova",
-              params: { count: strategies.length },
+              pathname: "/(tabs)/strategies/[id]/[setupId]",
+              params: { id, setupId: "new", name },
             })
           }
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Nova estratégia</Text>
+          <Text style={styles.buttonText}>Novo setup</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -136,12 +142,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
     fontSize: 22,
     fontWeight: "700",
     color: DARK_BLUE,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    color: DARK_BLUE,
+    marginBottom: 12,
   },
   list: {
     flex: 1,
@@ -149,7 +160,7 @@ const styles = StyleSheet.create({
   listContent: {
     gap: 10,
   },
-  strategyButton: {
+  setupCard: {
     backgroundColor: "#D6E8FA",
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -157,7 +168,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  strategyButtonText: {
+  setupCardText: {
     fontSize: 16,
     color: DARK_BLUE,
   },

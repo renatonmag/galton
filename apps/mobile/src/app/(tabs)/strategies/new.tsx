@@ -5,7 +5,7 @@ import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
-export default function NovaEstrategiaScreen() {
+export default function NewStrategyScreen() {
   const router = useRouter();
   const { count } = useLocalSearchParams<{ count: string }>();
   const placeholder = `Estratégia #${Number(count ?? 0) + 1}`;

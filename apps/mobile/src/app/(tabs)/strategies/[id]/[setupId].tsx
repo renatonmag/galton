@@ -20,7 +20,7 @@ export default function SetupDetailScreen() {
     setupId: string;
   }>();
 
-  const isNew = setupId === "novo";
+  const isNew = setupId === "new";
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -87,7 +87,7 @@ export default function SetupDetailScreen() {
         savedName.current = setup.name;
         savedDescription.current = setup.description ?? "";
         router.replace({
-          pathname: "/(tabs)/estrategias/[id]/[setupId]",
+          pathname: "/(tabs)/strategies/[id]/[setupId]",
           params: { id: strategyId, setupId: setup.id },
         });
       } else {
@@ -195,7 +195,7 @@ export default function SetupDetailScreen() {
           activeOpacity={0.8}
           onPress={() =>
             router.push({
-              pathname: "/(tabs)/estrategias/[id]/nova-caracteristica",
+              pathname: "/(tabs)/strategies/[id]/new-characteristic",
               params: { id: strategyId, setupId, setupName: name },
             })
           }

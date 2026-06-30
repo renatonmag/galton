@@ -1,33 +1,20 @@
-import { api, type Session } from "@/lib/api";
-import { useFocusEffect, useRouter } from "expo-router";
-import { SquarePen, Trash } from "lucide-react-native";
+import { api, type Strategy } from "@/lib/api";
+import { useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
+import { ChevronLeft, SquarePen, Trash } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
-export default function SessoesScreen() {
+export default function StrategiesScreen() {
   const router = useRouter();
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [editMode, setEditMode] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      api.sessions.$get()
-        .then((r) => r.json())
-        .then(({ sessions }) => setSessions(sessions));
-    }, []),
-  );
-
-  const createSession = useCallback(async () => {
-    const res = await api.sessions.$post({ json: {} });
-    const { session } = await res.json();
-    setSessions((prev) => [session, ...prev]);
-  }, []);
-
-  const deleteSession = useCallback((id: string, name: string) => {
+  const deleteStrategy = useCallback((id: string, name: string) => {
     Alert.alert(
-      "Excluir sessão",
+      "Excluir estratégia",
       `Deseja excluir "${name}"?`,
       [
         { text: "Cancelar", style: "cancel" },
@@ -35,55 +22,67 @@ export default function SessoesScreen() {
           text: "Excluir",
           style: "destructive",
           onPress: async () => {
-            await api.sessions[":id"].$delete({ param: { id } });
-            setSessions((prev) => prev.filter((s) => s.id !== id));
+            await api.strategies[":id"].$delete({ param: { id } });
+            setStrategies((prev) => prev.filter((s) => s.id !== id));
           },
         },
       ],
     );
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      api.strategies.$get().then((r) => r.json()).then(({ strategies }) => setStrategies(strategies));
+    }, []),
+  );
+
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        {router.canGoBack() && (
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <ChevronLeft color="#fff" size={22} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Sessões</Text>
+          <Text style={styles.title}>Estrategias</Text>
           <TouchableOpacity onPress={() => setEditMode((v) => !v)} activeOpacity={0.7}>
             <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
           </TouchableOpacity>
         </View>
 
         <FlatList
-          data={sessions}
+          data={strategies}
           keyExtractor={(item) => item.id}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.sessionCard}
+              style={styles.strategyButton}
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/sessoes/[id]",
+                  pathname: "/(tabs)/strategies/[id]",
                   params: { id: item.id, name: item.name },
                 })
               }
               activeOpacity={0.8}
             >
-              <Text style={[styles.sessionCardText, { flex: 1 }]}>{item.name}</Text>
-              {editMode ? (
+              <Text style={[styles.strategyButtonText, { flex: 1 }]}>{item.name}</Text>
+              {editMode && (
                 <TouchableOpacity
-                  onPress={() => deleteSession(item.id, item.name)}
+                  onPress={() => deleteStrategy(item.id, item.name)}
                   hitSlop={8}
                   activeOpacity={0.7}
                 >
                   <Trash color="#E57373" size={18} />
                 </TouchableOpacity>
-              ) : (
-                <View style={item.closedAt === null ? styles.badgeOpen : styles.badgeClosed}>
-                  <Text style={item.closedAt === null ? styles.badgeOpenText : styles.badgeClosedText}>
-                    {item.closedAt === null ? "Aberta" : "Encerrada"}
-                  </Text>
-                </View>
               )}
             </TouchableOpacity>
           )}
@@ -91,8 +90,17 @@ export default function SessoesScreen() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} onPress={createSession} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>Nova sessão</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)/strategies/new",
+              params: { count: strategies.length },
+            })
+          }
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>Nova estratégia</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -107,6 +115,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: BLUE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   content: {
     flex: 1,
     paddingHorizontal: 20,
@@ -116,7 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
     fontSize: 22,
@@ -129,7 +149,7 @@ const styles = StyleSheet.create({
   listContent: {
     gap: 10,
   },
-  sessionCard: {
+  strategyButton: {
     backgroundColor: "#D6E8FA",
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -137,31 +157,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  sessionCardText: {
+  strategyButtonText: {
     fontSize: 16,
     color: DARK_BLUE,
-  },
-  badgeOpen: {
-    backgroundColor: "#C8E6C9",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeOpenText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2E7D32",
-  },
-  badgeClosed: {
-    backgroundColor: "#E0E0E0",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeClosedText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#757575",
   },
   footer: {
     paddingHorizontal: 20,
