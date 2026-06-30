@@ -2,10 +2,8 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Button, Input, Text, View, YStack } from "tamagui";
 import { useEmailOtp } from "../../hooks/useEmailOtp";
-import { useGoogleAuth } from "../../hooks/useGoogleAuth";
 
 export default function LoginScreen() {
-  const { signInWithGoogle } = useGoogleAuth();
   const { sendOtp } = useEmailOtp();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -48,12 +46,6 @@ export default function LoginScreen() {
           disabled={loading || !email}
         >
           {loading ? "Sending…" : "Send code"}
-        </Button>
-        <Text textAlign="center" color="$color10">
-          or
-        </Text>
-        <Button onPress={signInWithGoogle} theme="blue" size="$5">
-          Sign in with Google
         </Button>
       </YStack>
     </View>

@@ -1,21 +1,26 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
-import { strategiesRoutes } from "./routes/strategies.js";
-import { setupsRoutes } from "./routes/setups.js";
-import { characteristicsRoutes } from "./routes/characteristics.js";
 import { sessionsRoutes } from "./routes/sessions.js";
-import { logEntriesRoutes } from "./routes/logEntries.js";
+import { tradeEntriesRoutes } from "./routes/tradeEntries.js";
+import { statsRoutes } from "./routes/stats.js";
 
 const app = new Hono();
 
 app.use(logger());
 
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    return c.json({ error: err.message }, err.status);
+  }
+  console.error(err);
+  return c.json({ error: "Internal Server Error" }, 500);
+});
+
 app.get("/", (c) => c.text("Galton API"));
-app.route("/strategies", strategiesRoutes);
-app.route("/strategies/:strategyId/setups", setupsRoutes);
-app.route("/strategies/:strategyId/setups/:setupId/characteristics", characteristicsRoutes);
 app.route("/sessions", sessionsRoutes);
-app.route("/log-entries", logEntriesRoutes);
+app.route("/trade-entries", tradeEntriesRoutes);
+app.route("/stats", statsRoutes);
 
 export type AppType = typeof app;
 export default app;

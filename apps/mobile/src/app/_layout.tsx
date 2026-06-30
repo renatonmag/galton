@@ -36,21 +36,6 @@ export default function RootLayout() {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error)
           console.error("[auth] exchangeCodeForSession error:", error.message);
-        return;
-      }
-      // Fallback: implicit flow — tokens in hash fragment
-      const hash = url.includes("#") ? url.split("#")[1] : "";
-      if (hash) {
-        const hashParams = new URLSearchParams(hash);
-        const access_token = hashParams.get("access_token");
-        const refresh_token = hashParams.get("refresh_token");
-        if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
-          if (error) console.error("[auth] setSession error:", error.message);
-        }
       }
     };
 

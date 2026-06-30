@@ -27,12 +27,12 @@ export default function SessionsScreen() {
 
   const deleteSession = useCallback((id: string, name: string) => {
     Alert.alert(
-      "Excluir sessão",
-      `Deseja excluir "${name}"?`,
+      "Delete session",
+      `Delete "${name}"?`,
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         {
-          text: "Excluir",
+          text: "Delete",
           style: "destructive",
           onPress: async () => {
             await api.sessions[":id"].$delete({ param: { id } });
@@ -47,7 +47,7 @@ export default function SessionsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Sessões</Text>
+          <Text style={styles.title}>Sessions</Text>
           <TouchableOpacity onPress={() => setEditMode((v) => !v)} activeOpacity={0.7}>
             <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
           </TouchableOpacity>
@@ -79,11 +79,7 @@ export default function SessionsScreen() {
                   <Trash color="#E57373" size={18} />
                 </TouchableOpacity>
               ) : (
-                <View style={item.closedAt === null ? styles.badgeOpen : styles.badgeClosed}>
-                  <Text style={item.closedAt === null ? styles.badgeOpenText : styles.badgeClosedText}>
-                    {item.closedAt === null ? "Aberta" : "Encerrada"}
-                  </Text>
-                </View>
+                <Text style={styles.tradeCount}>{item.tradeCount} trades</Text>
               )}
             </TouchableOpacity>
           )}
@@ -92,7 +88,7 @@ export default function SessionsScreen() {
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.button} onPress={createSession} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>Nova sessão</Text>
+          <Text style={styles.buttonText}>New session</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -141,27 +137,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: DARK_BLUE,
   },
-  badgeOpen: {
-    backgroundColor: "#C8E6C9",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeOpenText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2E7D32",
-  },
-  badgeClosed: {
-    backgroundColor: "#E0E0E0",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeClosedText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#757575",
+  tradeCount: {
+    fontSize: 13,
+    color: "#555",
+    fontWeight: "500",
   },
   footer: {
     paddingHorizontal: 20,

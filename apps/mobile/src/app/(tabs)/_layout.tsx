@@ -14,18 +14,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="strategies"
-        options={{
-          title: "Estrategias",
-          tabBarIcon: ({ color }) => (
-            <SymbolView name="list.clipboard.fill" tintColor={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="sessions"
         options={{
-          title: "Sessões",
+          title: "Sessions",
           tabBarIcon: ({ color }) => (
             <SymbolView name="calendar" tintColor={color} />
           ),

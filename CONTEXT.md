@@ -1,57 +1,89 @@
-# Galton
+# Galton — Simple Mode Context
 
-A personal trading journal. The user logs trades against predefined market patterns to build historical statistics, then uses those statistics to get a probabilistic recommendation before entering future trades.
+## What We're Building
 
-## Language
+A complete refactor of the trading journal app into a simple, focused flow. All strategy/setup/characteristic complexity is removed. The DB is rebuilt from scratch with two tables: `sessions` and `trade_entries`.
 
-**Strategy**:
-A named trading approach defined by the user. Contains one or more Setups.
-_Avoid_: plan
+## Domain Model
 
-**Setup**:
-A named market pattern within a Strategy. Has a list of Characteristics. Historical statistics (Win Rate) are tracked per Setup.
-_Avoid_: pattern, signal, configuration
+### Session
 
-**Characteristic**:
-An observable criterion attached to a Setup. Can be a boolean (present/absent) or a multiple-choice selection. Used to evaluate whether a Setup is present in a market situation.
-_Avoid_: criterion, condition, rule, attribute
+Container for a group of trades.
 
-**Log Entry**:
-The record of one trade evaluation: which Setup was identified, what Recommendation was made, and what Result followed. The core unit of the journal.
-_Avoid_: trade, entry, record, log
+| Field     | Type      | Notes             |
+| --------- | --------- | ----------------- |
+| id        | uuid      | PK                |
+| user_id   | uuid      | FK to auth user   |
+| name      | text      | Auto-generated    |
+| opened_at | timestamp |                   |
 
-**Recommendation**:
-The app's output after identifying a Setup: **TRADE** if mathematical expectation is positive, **NO TRADE** if negative. Entirely computed — the user does not input this.
-_Avoid_: decision, suggestion, signal
+### TradeEntry
 
-**Result**:
-Whether the Recommendation proved correct. ✓ (success) or ✗ (failure). For TRADE: the trade was profitable. For NO TRADE: the setup would have been a loss. Optional — a Log Entry may exist without a Result while the trade is still open or outcome unknown.
-_Avoid_: outcome, performance
+| Field         | Type      | Notes                                             |
+| ------------- | --------- | ------------------------------------------------- |
+| id            | uuid      | PK                                                |
+| session_id    | uuid      | FK to sessions (cascade delete)                   |
+| decision      | enum      | `TRADE` or `NO_TRADE` — the app's recommendation  |
+| result        | enum      | `open` (default), `profit`, `loss`, `breakeven`   |
+| r             | text      | Risk/reward string e.g. "1/2", "1/5" (user-typed) |
+| success_ratio | numeric   | Ratio at the moment of decision (stored)          |
+| created_at    | timestamp |                                                   |
 
-**Profit**:
-The monetary gain on a TRADE Log Entry. Logged alongside Loss to capture the risk-reward ratio used in the Mathematical Expectation formula.
-_Avoid_: gain, return
+## Success Ratio Formula
 
-**Loss**:
-The actual monetary loss realized on a TRADE Log Entry. Logged alongside Profit to capture the risk-reward ratio used in the Mathematical Expectation formula.
-_Avoid_: drawdown
+```
+success_ratio = (profit_count + breakeven_count) / (profit_count + breakeven_count + loss_count)
+```
 
-**Comment**:
-Free-text note attached to a Log Entry. May be produced by voice transcription.
-_Avoid_: note, description, annotation
+- Corpus: **all trade_entries ever**, across all sessions for the user
+- `open` entries are **excluded** from the calculation
+- Threshold: `>= 0.5` → **TRADE**, `< 0.5` → **NO TRADE**
+- No history (zero denominator): always show **TRADE**
 
-**History Dashboard**:
-A read-only view aggregating all Log Entries. Shows Win Rate and Mathematical Expectation per Setup, and total P&L across all Log Entries.
-_Avoid_: history, stats, analytics, reports
+## Add Trade Flow
 
-**Win Rate**:
-The percentage of Log Entries for a given Setup where Result = success.
-_Avoid_: accuracy, hit rate, success rate
+1. User taps **+** button on the session screen (replaces old voice FAB)
+2. App fetches all user's trade_entries, computes `success_ratio`
+3. A **bottom sheet** appears showing either a green **TRADE** or red **NO TRADE** card with the ratio percentage
+4. User taps the card to proceed to the form (same bottom sheet, next step)
+5. Form inputs:
+   - **Result**: segmented buttons — `open` (default) | `profit` | `loss` | `breakeven`
+   - **R**: free-text input (e.g. "1/2")
+6. On save: `decision`, `result`, `r`, `success_ratio`, and `created_at` are written to `trade_entries`
 
-**Mathematical Expectation**:
-The expected value per Log Entry for a given Setup: (Win Rate × average Profit) − (Loss Rate × average Loss). Positive expectation → TRADE. Negative → NO TRADE. The signal that drives the Recommendation. Requires at least 10 Log Entries; displayed as "insufficient data" below that threshold.
-_Avoid_: expected value, EV, edge
+## Session Screen
 
-**Trading Session**:
-A user-created container that groups one or more Log Entries from a single trading session. Auto-named by date. Each voice or text input within a Trading Session produces exactly one Log Entry. A Trading Session is either open (accepting new Log Entries and Results) or closed (read-only).
-_Avoid_: session, live mode, play mode
+- Lists trade_entries as cards (green = TRADE, red = NO TRADE)
+- Each card shows: decision label, check/X icon, success_ratio % at decision time
+- **+** FAB in bottom-right corner
+
+## Tab Bar
+
+Two tabs only: **Home** and **Sessions**. Everything else removed.
+
+## Home Tab
+
+Dashboard showing:
+
+- Big overall success ratio (across all trades ever)
+- Breakdown: total count + profit / loss / breakeven / open counts
+
+## Sessions List Screen
+
+Each session row shows: **date** + **trade count**.
+
+- **Create session**: tap a button → auto-generates a name from today's date (e.g. "Jun 30, 2026")
+- **Delete session**: edit button at top toggles edit mode → trash icon appears on each row → confirmation alert → delete (cascades to trade entries)
+
+## Session Detail Screen
+
+Lists trade entries as cards (green = TRADE, red = NO TRADE).  
+Each card shows: decision label, check/X icon, success_ratio % at decision time.
+
+- **Add Trade**: `+` FAB (bottom-right)
+- **Delete trade entry**: edit button at top toggles edit mode → trash icon appears on each card → confirmation alert → delete
+- **Edit trade entry**: result and r are editable after save; decision and success_ratio are fixed. In a dialog
+
+## What Was Removed
+
+Everything related to strategies, setups, characteristics, log entries, and voice recording is gone — screens, routes, DB tables, and API endpoints.
