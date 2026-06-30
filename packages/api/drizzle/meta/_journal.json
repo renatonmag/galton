@@ -8,6 +8,20 @@
       "when": 1782746069870,
       "tag": "0000_soft_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782824392695,
+      "tag": "0001_next_nicolaos",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782824861628,
+      "tag": "0002_burly_red_hulk",
+      "breakpoints": true
     }
   ]
 }

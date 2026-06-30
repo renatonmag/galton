@@ -7,7 +7,7 @@ export const characteristicTypeEnum = pgEnum("characteristic_type", [
 ]);
 
 export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
-export const resultEnum = pgEnum("result", ["success", "failure"]);
+export const resultEnum = pgEnum("result", ["open", "profit", "loss", "breakeven"]);
 
 export const strategies = pgTable("strategies", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -55,7 +55,7 @@ export const logEntries = pgTable("log_entries", {
     .notNull()
     .references(() => setups.id, { onDelete: "cascade" }),
   decision: decisionEnum("decision").notNull(),
-  result: resultEnum("result"),
+  result: resultEnum("result").notNull().default("open"),
   profit: numeric("profit", { precision: 12, scale: 2 }),
   loss: numeric("loss", { precision: 12, scale: 2 }),
   comment: text("comment"),

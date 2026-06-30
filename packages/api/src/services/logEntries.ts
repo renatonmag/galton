@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
-import { logEntries, logEntryCharacteristics, sessions, setups } from "../db/schema.js";
+import { logEntries, logEntryCharacteristics, sessions } from "../db/schema.js";
 
 type CharacteristicInput = { characteristicId: string; value: string };
 
@@ -24,11 +24,35 @@ export const logEntriesService = {
       .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)));
     if (!owned[0]) return undefined;
 
-    return db
-      .select({ ...logEntryColumns, setupName: setups.name })
-      .from(logEntries)
-      .leftJoin(setups, eq(logEntries.setupId, setups.id))
-      .where(eq(logEntries.sessionId, sessionId));
+    const rows = await db.query.logEntries.findMany({
+      where: eq(logEntries.sessionId, sessionId),
+      with: {
+        setup: { columns: { name: true } },
+        characteristics: {
+          with: {
+            characteristic: { columns: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      sessionId: row.sessionId,
+      setupId: row.setupId,
+      decision: row.decision,
+      result: row.result,
+      profit: row.profit,
+      loss: row.loss,
+      comment: row.comment,
+      createdAt: row.createdAt,
+      setupName: row.setup?.name ?? null,
+      characteristics: row.characteristics.map((c) => ({
+        characteristicId: c.characteristicId,
+        characteristicName: c.characteristic.name,
+        value: c.value,
+      })),
+    }));
   },
 
   get: async (id: string, userId: string) => {
@@ -46,7 +70,7 @@ export const logEntriesService = {
     data: {
       setupId: string;
       decision: "TRADE" | "NO_TRADE";
-      result?: "success" | "failure";
+      result?: "open" | "profit" | "loss" | "breakeven";
       profit?: string;
       loss?: string;
       comment?: string;
@@ -91,7 +115,7 @@ export const logEntriesService = {
     id: string,
     userId: string,
     data: {
-      result?: "success" | "failure" | null;
+      result?: "open" | "profit" | "loss" | "breakeven";
       profit?: string | null;
       loss?: string | null;
       comment?: string | null;

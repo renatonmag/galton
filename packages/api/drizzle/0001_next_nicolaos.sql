@@ -1,0 +1,1 @@
+ALTER TYPE "public"."result" ADD VALUE 'breakeven';

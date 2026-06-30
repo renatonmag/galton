@@ -9,7 +9,7 @@ app.use(authMiddleware);
 app.patch("/:id", async (c) => {
   const userId = c.get("userId");
   const data = await c.req.json<{
-    result?: "success" | "failure" | null;
+    result?: "open" | "profit" | "loss" | "breakeven";
     profit?: string | null;
     loss?: string | null;
     comment?: string | null;

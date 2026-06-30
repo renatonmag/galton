@@ -69,7 +69,7 @@ app.post("/:sessionId/log-entries", async (c) => {
   const data = await c.req.json<{
     setupId: string;
     decision: "TRADE" | "NO_TRADE";
-    result?: "success" | "failure";
+    result?: "open" | "profit" | "loss" | "breakeven";
     profit?: string;
     loss?: string;
     comment?: string;
