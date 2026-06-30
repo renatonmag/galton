@@ -54,7 +54,7 @@ oAuth/
 .idea/shelf
 
 # env
-.env
+.env*
 .env.production
 .env.development
 
