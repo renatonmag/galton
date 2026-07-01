@@ -2,9 +2,9 @@ import { api, type Session } from "@/lib/api";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SquarePen, Trash } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text } from "tamagui";
+import { Button, Text, XStack, YStack } from "tamagui";
 
 export default function SessionsScreen() {
   const router = useRouter();
@@ -13,7 +13,8 @@ export default function SessionsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      api.sessions.$get()
+      api.sessions
+        .$get()
         .then((r) => r.json())
         .then(({ sessions }) => setSessions(sessions));
     }, []),
@@ -26,136 +27,82 @@ export default function SessionsScreen() {
   }, []);
 
   const deleteSession = useCallback((id: string, name: string) => {
-    Alert.alert(
-      "Delete session",
-      `Delete "${name}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            await api.sessions[":id"].$delete({ param: { id } });
-            setSessions((prev) => prev.filter((s) => s.id !== id));
-          },
+    Alert.alert("Delete session", `Delete "${name}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await api.sessions[":id"].$delete({ param: { id } });
+          setSessions((prev) => prev.filter((s) => s.id !== id));
         },
-      ],
-    );
+      },
+    ]);
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>Sessions</Text>
-          <TouchableOpacity onPress={() => setEditMode((v) => !v)} activeOpacity={0.7}>
-            <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <YStack flex={1} px="$5" pt="$3">
+        <XStack alignItems="center" justifyContent="space-between" mb="$4">
+          <Text fontSize={22} fontWeight="700" color="$blue12">
+            Sessions
+          </Text>
+          <Button chromeless p="$1" onPress={() => setEditMode((v) => !v)}>
+            <SquarePen color={editMode ? "#6FA8DC" : "#1A3A5C"} size={20} />
+          </Button>
+        </XStack>
 
         <FlatList
           data={sessions}
           keyExtractor={(item) => item.id}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ gap: 10 }}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.sessionCard}
+            <XStack
+              backgroundColor="$blue3"
+              borderRadius={12}
+              px="$4"
+              py="$3.5"
+              alignItems="center"
+              pressStyle={{ opacity: 0.8 }}
               onPress={() =>
                 router.push({
                   pathname: "/(tabs)/sessions/[id]",
                   params: { id: item.id, name: item.name },
                 })
               }
-              activeOpacity={0.8}
             >
-              <Text style={[styles.sessionCardText, { flex: 1 }]}>{item.name}</Text>
+              <Text flex={1} fontSize="$5" color="$blue12">
+                {item.name}
+              </Text>
               {editMode ? (
-                <TouchableOpacity
+                <Button
+                  chromeless
+                  p="$1"
                   onPress={() => deleteSession(item.id, item.name)}
-                  hitSlop={8}
-                  activeOpacity={0.7}
                 >
                   <Trash color="#E57373" size={18} />
-                </TouchableOpacity>
+                </Button>
               ) : (
-                <Text style={styles.tradeCount}>{item.tradeCount} trades</Text>
+                <Text fontSize="$3" color="$color10" fontWeight="500">
+                  {item.tradeCount} trades
+                </Text>
               )}
-            </TouchableOpacity>
+            </XStack>
           )}
         />
-      </View>
+      </YStack>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} onPress={createSession} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>New session</Text>
-        </TouchableOpacity>
-      </View>
+      <YStack px="$5" pb="$3">
+        <Button
+          theme="blue"
+          size="$5"
+          borderRadius={12}
+          onPress={createSession}
+        >
+          New session
+        </Button>
+      </YStack>
     </SafeAreaView>
   );
 }
-
-const BLUE = "#6FA8DC";
-const DARK_BLUE = "#1A3A5C";
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-  },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: DARK_BLUE,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    gap: 10,
-  },
-  sessionCard: {
-    backgroundColor: "#D6E8FA",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sessionCardText: {
-    fontSize: 16,
-    color: DARK_BLUE,
-  },
-  tradeCount: {
-    fontSize: 13,
-    color: "#555",
-    fontWeight: "500",
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  button: {
-    backgroundColor: BLUE,
-    borderRadius: 12,
-    height: 52,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

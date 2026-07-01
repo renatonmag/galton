@@ -1,4 +1,5 @@
 import { api, type TradeEntry } from "@/lib/api";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   Check,
@@ -9,19 +10,9 @@ import {
   X,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import {
-  Alert,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Modal, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text } from "tamagui";
+import { Button, Input, Text, XStack, YStack } from "tamagui";
 
 type Result = "open" | "profit" | "loss" | "breakeven";
 
@@ -68,50 +59,60 @@ function TradeCard({
   const pct = `${Math.round(Number(entry.successRatio) * 100)}%`;
 
   return (
-    <TouchableOpacity
-      style={[styles.card, isTrade ? styles.tradeCard : styles.noTradeCard]}
+    <YStack
+      backgroundColor={isTrade ? "#C6F6D5" : "#FED7D7"}
+      borderRadius={12}
+      px="$4"
+      py="$3.5"
+      pressStyle={{ opacity: 0.8 }}
       onPress={editMode ? undefined : onTap}
-      activeOpacity={editMode ? 1 : 0.8}
     >
-      <View style={styles.cardRow}>
-        <View style={styles.cardLeft}>
-          <View style={styles.decisionRow}>
+      <XStack alignItems="flex-start" justifyContent="space-between">
+        <YStack gap="$0.5">
+          <XStack alignItems="center" gap="$1.5">
             {entry.result === "open" && (
-              <View
-                style={[styles.openDot, { backgroundColor: accentColor }]}
+              <YStack
+                width={8}
+                height={8}
+                borderRadius={4}
+                backgroundColor={accentColor}
               />
             )}
-            <Text style={[styles.cardDecision, { color: accentColor }]}>
+            <Text fontSize="$3.5" fontWeight="700" color={accentColor}>
               {isTrade ? "TRADE" : "NO TRADE"}
             </Text>
-          </View>
-          <Text style={styles.cardR}>{entry.r}</Text>
-        </View>
-        <View style={styles.cardRight}>
+          </XStack>
+          <Text fontSize="$3" color="$color10">
+            {entry.r}
+          </Text>
+        </YStack>
+        <XStack alignItems="center" gap="$2.5">
           {isTrade ? (
             <Check color={accentColor} size={18} />
           ) : (
             <X color={accentColor} size={18} />
           )}
-          <Text style={[styles.cardPct, { color: accentColor }]}>{pct}</Text>
+          <Text fontSize="$3.5" fontWeight="700" color={accentColor}>
+            {pct}
+          </Text>
           {editMode && (
-            <TouchableOpacity
-              onPress={onDelete}
-              hitSlop={8}
-              activeOpacity={0.7}
-            >
+            <Button chromeless p="$1" onPress={onDelete}>
               <Trash color="#E57373" size={18} />
-            </TouchableOpacity>
+            </Button>
           )}
-        </View>
-      </View>
-      <View style={styles.cardFooter}>
-        <Text style={styles.cardTime}>Created {fmtTime(entry.createdAt)}</Text>
+        </XStack>
+      </XStack>
+      <XStack gap="$2.5" mt="$1.5">
+        <Text fontSize={11} color="$color8">
+          Created {fmtTime(entry.createdAt)}
+        </Text>
         {fmtTime(entry.entryAt) && (
-          <Text style={styles.cardTime}>Entry {fmtTime(entry.entryAt)}</Text>
+          <Text fontSize={11} color="$color8">
+            Entry {fmtTime(entry.entryAt)}
+          </Text>
         )}
-      </View>
-    </TouchableOpacity>
+      </XStack>
+    </YStack>
   );
 }
 
@@ -121,14 +122,12 @@ export default function SessionScreen() {
   const [entries, setEntries] = useState<TradeEntry[]>([]);
   const [editMode, setEditMode] = useState(false);
 
-  // Add trade sheet
   const [sheetVisible, setSheetVisible] = useState(false);
   const [pendingDecision, setPendingDecision] = useState<{
     ratio: number;
     decision: "TRADE" | "NO_TRADE";
   } | null>(null);
 
-  // Edit dialog
   const [editingEntry, setEditingEntry] = useState<TradeEntry | null>(null);
   const [editResult, setEditResult] = useState<Result>("open");
   const [editR, setEditR] = useState("");
@@ -210,31 +209,56 @@ export default function SessionScreen() {
   }, [editingEntry, editResult, editR, editEntryAt]);
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+    <YStack flex={1} backgroundColor="#fff">
+      <SafeAreaView style={{ flex: 1 }}>
+        <XStack
+          px="$5"
+          pt="$2"
+          alignItems="center"
+          justifyContent="space-between"
+        >
           {router.canGoBack() && (
-            <TouchableOpacity
-              style={styles.backButton}
+            <YStack
+              width={44}
+              height={44}
+              borderRadius={22}
+              backgroundColor="$blue8"
+              alignItems="center"
+              justifyContent="center"
+              pressStyle={{ opacity: 0.8 }}
               onPress={() => router.back()}
-              activeOpacity={0.8}
             >
               <ChevronLeft color="#fff" size={22} />
-            </TouchableOpacity>
+            </YStack>
           )}
-          <TouchableOpacity
-            onPress={() => setEditMode((v) => !v)}
-            activeOpacity={0.7}
-          >
-            <SquarePen color={editMode ? BLUE : DARK_BLUE} size={20} />
-          </TouchableOpacity>
-        </View>
+          <Button chromeless p="$1" onPress={() => setEditMode((v) => !v)}>
+            <SquarePen color={editMode ? "#6FA8DC" : "#1A3A5C"} size={20} />
+          </Button>
+        </XStack>
 
-        <View style={styles.content}>
-          <Text style={styles.title}>{name}</Text>
+        <YStack flex={1} px="$5" pt="$3">
+          <XStack alignItems="center" justifyContent="space-between" mb="$4">
+            <Text fontSize={22} fontWeight="700" color="$blue12">
+              {name}
+            </Text>
+            {(() => {
+              const { ratio, decision } = computeLocalDecision(entries);
+              if (entries.filter((e) => e.result !== "open").length === 0)
+                return null;
+              return (
+                <Text
+                  fontSize="$4"
+                  fontWeight="700"
+                  color={decision === "TRADE" ? "#276749" : "#9B2C2C"}
+                >
+                  {Math.round(ratio * 100)}%
+                </Text>
+              );
+            })()}
+          </XStack>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={{ gap: 10, paddingBottom: 96 }}
           >
             {entries.map((entry) => (
               <TradeCard
@@ -246,31 +270,44 @@ export default function SessionScreen() {
               />
             ))}
           </ScrollView>
-        </View>
+        </YStack>
       </SafeAreaView>
 
-      {/* FAB */}
-      <TouchableOpacity
-        style={styles.fab}
+      <YStack
+        position="absolute"
+        bottom={32}
+        right={24}
+        width={64}
+        height={64}
+        borderRadius={32}
+        backgroundColor="$blue8"
+        alignItems="center"
+        justifyContent="center"
+        pressStyle={{ opacity: 0.8 }}
         onPress={openAddSheet}
-        activeOpacity={0.8}
       >
         <Plus color="#fff" size={28} />
-      </TouchableOpacity>
+      </YStack>
 
-      {/* Add Trade Bottom Sheet */}
       <Modal
         visible={sheetVisible}
         transparent
         animationType="slide"
         onRequestClose={() => setSheetVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
+        <YStack
+          flex={1}
+          backgroundColor="rgba(0,0,0,0.4)"
           onPress={() => setSheetVisible(false)}
         />
-        <View style={styles.sheet}>
+        <YStack
+          backgroundColor="#fff"
+          borderTopLeftRadius={20}
+          borderTopRightRadius={20}
+          px="$5"
+          pt="$5"
+          pb="$10"
+        >
           {pendingDecision && (
             <DecisionStep
               decision={pendingDecision.decision}
@@ -278,40 +315,50 @@ export default function SessionScreen() {
               onPress={saveNewTrade}
             />
           )}
-        </View>
+        </YStack>
       </Modal>
 
-      {/* Edit Dialog */}
       <Modal
         visible={editingEntry != null}
         transparent
         animationType="fade"
         onRequestClose={() => setEditingEntry(null)}
       >
-        <View style={styles.dialogBackdrop}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>Edit Trade</Text>
+        <YStack
+          flex={1}
+          backgroundColor="rgba(0,0,0,0.4)"
+          justifyContent="center"
+          px="$6"
+        >
+          <YStack backgroundColor="#fff" borderRadius={20} p="$6" gap="$3.5">
+            <Text fontSize="$6" fontWeight="700" color="$blue12">
+              Edit Trade
+            </Text>
             <ResultSegment value={editResult} onChange={setEditResult} />
-            <Text style={styles.inputLabel}>R</Text>
-            <TextInput
-              style={styles.textInput}
+            <Text fontSize="$3" fontWeight="600" color="$blue12">
+              R
+            </Text>
+            <Input
+              size="$4"
+              borderRadius={10}
               value={editR}
               onChangeText={setEditR}
               placeholder="e.g. 1/2"
               placeholderTextColor="#aaa"
             />
-            <Text style={styles.inputLabel}>Entry Time</Text>
-            <TouchableOpacity
-              style={styles.textInput}
+            <Text fontSize="$3" fontWeight="600" color="$blue12">
+              Entry Time
+            </Text>
+            <XStack
+              borderWidth={1}
+              borderColor="$borderColor"
+              borderRadius={10}
+              px="$3.5"
+              py="$2.5"
+              pressStyle={{ opacity: 0.7 }}
               onPress={() => setShowTimePicker(true)}
-              activeOpacity={0.7}
             >
-              <Text
-                style={{
-                  color: editEntryAt ? DARK_BLUE : "#aaa",
-                  fontSize: 16,
-                }}
-              >
+              <Text color={editEntryAt ? "$blue12" : "$color7"} fontSize="$5">
                 {editEntryAt
                   ? editEntryAt.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -319,7 +366,7 @@ export default function SessionScreen() {
                     })
                   : "Not set"}
               </Text>
-            </TouchableOpacity>
+            </XStack>
             {showTimePicker && (
               <DateTimePicker
                 value={editEntryAt ?? new Date()}
@@ -331,26 +378,35 @@ export default function SessionScreen() {
                 }}
               />
             )}
-            <View style={styles.dialogButtons}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
+            <XStack gap="$2.5" mt="$1">
+              <YStack
+                flex={1}
+                py="$3"
+                borderRadius={10}
+                borderWidth={1}
+                borderColor="$borderColor"
+                alignItems="center"
+                pressStyle={{ opacity: 0.8 }}
                 onPress={() => setEditingEntry(null)}
-                activeOpacity={0.8}
               >
-                <Text style={styles.dialogCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogSave}
+                <Text color="$color10" fontWeight="600">
+                  Cancel
+                </Text>
+              </YStack>
+              <Button
+                flex={1}
+                theme="blue"
+                borderRadius={10}
+                size="$4"
                 onPress={saveEdit}
-                activeOpacity={0.8}
               >
-                <Text style={styles.dialogSaveText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+                Save
+              </Button>
+            </XStack>
+          </YStack>
+        </YStack>
       </Modal>
-    </View>
+    </YStack>
   );
 }
 
@@ -369,26 +425,35 @@ function DecisionStep({
   const pct = `${Math.round(ratio * 100)}%`;
 
   return (
-    <View style={styles.decisionStep}>
-      <TouchableOpacity
-        style={[styles.decisionCard, { backgroundColor: bg }]}
+    <YStack gap="$3">
+      <XStack
+        borderRadius={16}
+        px="$5"
+        py="$5"
+        backgroundColor={bg}
+        alignItems="center"
+        justifyContent="space-between"
+        pressStyle={{ opacity: 0.85 }}
         onPress={onPress}
-        activeOpacity={0.85}
       >
-        <View style={styles.decisionCardLeft}>
+        <XStack alignItems="center" gap="$2.5">
           {isTrade ? (
             <Check color={color} size={22} />
           ) : (
             <X color={color} size={22} />
           )}
-          <Text style={[styles.decisionLabel, { color }]}>
+          <Text fontSize={22} fontWeight="800" color={color}>
             {isTrade ? "TRADE" : "NO TRADE"}
           </Text>
-        </View>
-        <Text style={[styles.decisionPct, { color }]}>{pct}</Text>
-      </TouchableOpacity>
-      <Text style={styles.decisionHint}>Tap to add</Text>
-    </View>
+        </XStack>
+        <Text fontSize={28} fontWeight="800" color={color}>
+          {pct}
+        </Text>
+      </XStack>
+      <Text textAlign="center" color="$color8" fontSize="$3">
+        Tap to add
+      </Text>
+    </YStack>
   );
 }
 
@@ -407,179 +472,31 @@ function ResultSegment({
   onChange: (v: Result) => void;
 }) {
   return (
-    <View style={styles.segment}>
+    <XStack
+      borderRadius={10}
+      borderWidth={1}
+      borderColor="$borderColor"
+      overflow="hidden"
+    >
       {RESULTS.map((r) => (
-        <TouchableOpacity
+        <YStack
           key={r.value}
-          style={[
-            styles.segmentBtn,
-            value === r.value && styles.segmentBtnActive,
-          ]}
+          flex={1}
+          py="$2.5"
+          alignItems="center"
+          backgroundColor={value === r.value ? "$blue12" : "#fff"}
+          pressStyle={{ opacity: 0.8 }}
           onPress={() => onChange(r.value)}
-          activeOpacity={0.8}
         >
           <Text
-            style={[
-              styles.segmentText,
-              value === r.value && styles.segmentTextActive,
-            ]}
+            fontSize="$3"
+            fontWeight="600"
+            color={value === r.value ? "#fff" : "$color8"}
           >
             {r.label}
           </Text>
-        </TouchableOpacity>
+        </YStack>
       ))}
-    </View>
+    </XStack>
   );
 }
-
-const BLUE = "#6FA8DC";
-const DARK_BLUE = "#1A3A5C";
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
-  container: { flex: 1 },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: BLUE,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 12 },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: DARK_BLUE,
-    marginBottom: 16,
-  },
-  listContent: { gap: 10, paddingBottom: 96 },
-
-  // Trade card
-  card: {
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: "column",
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  cardFooter: { flexDirection: "row", gap: 10, marginTop: 6 },
-  cardTime: { fontSize: 11, color: "#777" },
-  tradeCard: { backgroundColor: "#C6F6D5" },
-  noTradeCard: { backgroundColor: "#FED7D7" },
-  cardLeft: { gap: 2 },
-  decisionRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  openDot: { width: 8, height: 8, borderRadius: 4 },
-  cardDecision: { fontSize: 16, fontWeight: "700" },
-  cardR: { fontSize: 13, color: "#555" },
-  cardRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  cardPct: { fontSize: 16, fontWeight: "700" },
-
-  // FAB
-  fab: {
-    position: "absolute",
-    bottom: 32,
-    right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: BLUE,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Bottom sheet
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
-  sheet: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
-
-  // Decision step
-  decisionStep: { gap: 12 },
-  decisionCard: {
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  decisionCardLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  decisionLabel: { fontSize: 22, fontWeight: "800" },
-  decisionPct: { fontSize: 28, fontWeight: "800" },
-  decisionHint: { textAlign: "center", color: "#aaa", fontSize: 13 },
-
-  // Shared inputs
-  inputLabel: { fontSize: 13, fontWeight: "600", color: DARK_BLUE },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: DARK_BLUE,
-  },
-
-  // Segmented control
-  segment: {
-    flexDirection: "row",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    overflow: "hidden",
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  segmentBtnActive: { backgroundColor: DARK_BLUE },
-  segmentText: { fontSize: 13, fontWeight: "600", color: "#888" },
-  segmentTextActive: { color: "#fff" },
-
-  // Dialog
-  dialogBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  dialog: { backgroundColor: "#fff", borderRadius: 20, padding: 24, gap: 14 },
-  dialogTitle: { fontSize: 18, fontWeight: "700", color: DARK_BLUE },
-  dialogButtons: { flexDirection: "row", gap: 10, marginTop: 4 },
-  dialogCancel: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    alignItems: "center",
-  },
-  dialogCancelText: { color: "#555", fontWeight: "600" },
-  dialogSave: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: DARK_BLUE,
-    alignItems: "center",
-  },
-  dialogSaveText: { color: "#fff", fontWeight: "600" },
-});
