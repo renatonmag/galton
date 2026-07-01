@@ -11,6 +11,7 @@ app.patch("/:id", async (c) => {
   const data = await c.req.json<{
     result?: "open" | "profit" | "loss" | "breakeven";
     r?: string;
+    entryAt?: string | null;
   }>();
   const tradeEntry = await tradeEntriesService.update(c.req.param("id"), userId, data);
   if (!tradeEntry) return c.json({ error: "Not found" }, 404);

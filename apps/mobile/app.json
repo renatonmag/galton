@@ -15,7 +15,9 @@
     },
     "android": {
       "package": "com.renatonmag.galton",
-      "permissions": ["RECORD_AUDIO"],
+      "permissions": [
+        "RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -44,7 +46,8 @@
       "expo-web-browser",
       "expo-secure-store",
       "expo-sqlite",
-      "expo-audio"
+      "expo-audio",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

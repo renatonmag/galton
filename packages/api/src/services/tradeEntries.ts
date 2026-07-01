@@ -71,7 +71,7 @@ export const tradeEntriesService = {
   update: async (
     id: string,
     userId: string,
-    data: { result?: "open" | "profit" | "loss" | "breakeven"; r?: string },
+    data: { result?: "open" | "profit" | "loss" | "breakeven"; r?: string; entryAt?: string | null },
   ) => {
     const existing = await db
       .select()
@@ -82,7 +82,11 @@ export const tradeEntriesService = {
 
     const rows = await db
       .update(tradeEntries)
-      .set({ ...(data.result && { result: data.result }), ...(data.r && { r: data.r }) })
+      .set({
+        ...(data.result && { result: data.result }),
+        ...(data.r && { r: data.r }),
+        ...(data.entryAt !== undefined && { entryAt: data.entryAt ? new Date(data.entryAt) : null }),
+      })
       .where(eq(tradeEntries.id, id))
       .returning();
     return rows[0];

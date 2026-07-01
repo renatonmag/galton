@@ -29,6 +29,13 @@
       "when": 1751241600000,
       "tag": "0003_simple_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782897377577,
+      "tag": "0004_slim_molten_man",
+      "breakpoints": true
     }
   ]
 }

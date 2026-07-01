@@ -20,6 +20,7 @@ export const tradeEntries = pgTable("trade_entries", {
   result: resultEnum("result").notNull().default("open"),
   r: text("r").notNull(),
   successRatio: numeric("success_ratio", { precision: 5, scale: 4 }).notNull(),
+  entryAt: timestamp("entry_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
