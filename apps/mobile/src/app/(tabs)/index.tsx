@@ -1,21 +1,13 @@
-import { api, type Stats } from "@/lib/api";
+import { useStats } from "@/hooks/queries/use-stats";
+import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { supabase } from "@/lib/supabase";
-import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
 export default function HomeScreen() {
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      api.stats.$get()
-        .then((r) => r.json())
-        .then((data) => setStats(data));
-    }, []),
-  );
+  const { data: stats, isLoading, isError, refetch } = useStats();
+  useRefreshOnFocus(refetch);
 
   const ratio =
     stats?.successRatio != null
@@ -34,8 +26,12 @@ export default function HomeScreen() {
 
         <View style={styles.ratioContainer}>
           <Text style={styles.ratioLabel}>Success Ratio</Text>
-          {stats == null ? (
+          {isLoading ? (
             <ActivityIndicator color={BLUE} size="large" style={{ marginTop: 12 }} />
+          ) : isError ? (
+            <TouchableOpacity onPress={() => refetch()} hitSlop={8}>
+              <Text style={styles.errorText}>Failed to load — tap to retry</Text>
+            </TouchableOpacity>
           ) : (
             <Text style={styles.ratioValue}>{ratio}</Text>
           )}
@@ -116,6 +112,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: DARK_BLUE,
     lineHeight: 80,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#9B2C2C",
+    fontWeight: "600",
+    marginTop: 12,
   },
   breakdown: {
     flexDirection: "row",

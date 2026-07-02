@@ -5,9 +5,12 @@ import { sessionsRoutes } from "./routes/sessions.js";
 import { tradeEntriesRoutes } from "./routes/tradeEntries.js";
 import { statsRoutes } from "./routes/stats.js";
 
-const app = new Hono();
-
-app.use(logger());
+const app = new Hono()
+  .use(logger())
+  .get("/", (c) => c.text("Galton API"))
+  .route("/sessions", sessionsRoutes)
+  .route("/trade-entries", tradeEntriesRoutes)
+  .route("/stats", statsRoutes);
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
@@ -16,11 +19,6 @@ app.onError((err, c) => {
   console.error(err);
   return c.json({ error: "Internal Server Error" }, 500);
 });
-
-app.get("/", (c) => c.text("Galton API"));
-app.route("/sessions", sessionsRoutes);
-app.route("/trade-entries", tradeEntriesRoutes);
-app.route("/stats", statsRoutes);
 
 export type AppType = typeof app;
 export default app;

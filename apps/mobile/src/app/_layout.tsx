@@ -1,5 +1,7 @@
+import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import * as Linking from "expo-linking";
 import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
@@ -59,6 +61,7 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) queryClient.clear();
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -74,14 +77,16 @@ export default function RootLayout() {
   }, [session, loading, segments]);
 
   return (
-    <TamaguiProvider
-      config={tamaguiConfig}
-      defaultTheme={colorScheme ?? "light"}
-    >
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </TamaguiProvider>
+    <QueryClientProvider client={queryClient}>
+      <TamaguiProvider
+        config={tamaguiConfig}
+        defaultTheme={colorScheme ?? "light"}
+      >
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+        <StatusBar style="auto" />
+      </TamaguiProvider>
+    </QueryClientProvider>
   );
 }

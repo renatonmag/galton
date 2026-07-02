@@ -28,8 +28,9 @@ export const api = hc<AppType>(BASE_URL, {
   },
 });
 
-export type Session = InferResponseType<typeof api.sessions.$get>["sessions"][number];
+export type Session = InferResponseType<typeof api.sessions.$get, 200>["sessions"][number];
 export type TradeEntry = InferResponseType<
-  (typeof api.sessions)[":sessionId"]["trade-entries"]["$get"]
+  (typeof api.sessions)[":sessionId"]["trade-entries"]["$get"],
+  200
 >["tradeEntries"][number];
-export type Stats = InferResponseType<typeof api.stats.$get>;
+export type Stats = InferResponseType<typeof api.stats.$get, 200>;

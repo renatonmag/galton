@@ -1,6 +1,13 @@
-import { api, type TradeEntry } from "@/lib/api";
+import {
+  useCreateTradeEntry,
+  useDeleteTradeEntry,
+  useTradeEntries,
+  useUpdateTradeEntry,
+} from "@/hooks/queries/use-trade-entries";
+import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
+import { type TradeEntry } from "@/lib/api";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   Check,
   ChevronLeft,
@@ -10,7 +17,7 @@ import {
   X,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Alert, Modal, Platform, ScrollView } from "react-native";
+import { ActivityIndicator, Alert, Modal, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Input, Text, XStack, YStack } from "tamagui";
 
@@ -119,7 +126,6 @@ function TradeCard({
 export default function SessionScreen() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
-  const [entries, setEntries] = useState<TradeEntry[]>([]);
   const [editMode, setEditMode] = useState(false);
 
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -134,18 +140,11 @@ export default function SessionScreen() {
   const [editEntryAt, setEditEntryAt] = useState<Date | null>(null);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      api.sessions[":sessionId"]["trade-entries"]
-        .$get({ param: { sessionId: id } })
-        .then((r) => r.json())
-        .then((data) => {
-          if ("tradeEntries" in data)
-            setEntries(data.tradeEntries as TradeEntry[]);
-        })
-        .catch(() => {});
-    }, [id]),
-  );
+  const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
+  useRefreshOnFocus(refetch);
+  const createTradeEntry = useCreateTradeEntry(id);
+  const updateTradeEntry = useUpdateTradeEntry(id);
+  const deleteTradeEntry = useDeleteTradeEntry(id);
 
   const openAddSheet = useCallback(() => {
     const dec = computeLocalDecision(entries);
@@ -153,31 +152,25 @@ export default function SessionScreen() {
     setSheetVisible(true);
   }, [entries]);
 
-  const saveNewTrade = useCallback(async () => {
-    const res = await api.sessions[":sessionId"]["trade-entries"].$post({
-      param: { sessionId: id },
-      json: {},
+  const saveNewTrade = useCallback(() => {
+    createTradeEntry.mutate(undefined, {
+      onSuccess: () => setSheetVisible(false),
     });
-    const data = await res.json();
-    if ("tradeEntry" in data) {
-      setEntries((prev) => [...prev, data.tradeEntry as TradeEntry]);
-    }
-    setSheetVisible(false);
-  }, [id]);
+  }, [createTradeEntry]);
 
-  const deleteEntry = useCallback((entryId: string) => {
-    Alert.alert("Delete trade", "Delete this trade entry?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          await api["trade-entries"][":id"].$delete({ param: { id: entryId } });
-          setEntries((prev) => prev.filter((e) => e.id !== entryId));
+  const deleteEntry = useCallback(
+    (entryId: string) => {
+      Alert.alert("Delete trade", "Delete this trade entry?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteTradeEntry.mutate(entryId),
         },
-      },
-    ]);
-  }, []);
+      ]);
+    },
+    [deleteTradeEntry],
+  );
 
   const openEditDialog = useCallback((entry: TradeEntry) => {
     setEditingEntry(entry);
@@ -187,26 +180,18 @@ export default function SessionScreen() {
     setShowTimePicker(false);
   }, []);
 
-  const saveEdit = useCallback(async () => {
+  const saveEdit = useCallback(() => {
     if (!editingEntry) return;
-    const res = await api["trade-entries"][":id"].$patch({
-      param: { id: editingEntry.id },
-      json: {
+    updateTradeEntry.mutate(
+      {
+        id: editingEntry.id,
         result: editResult,
         r: editR.trim() || editingEntry.r,
         entryAt: editEntryAt?.toISOString() ?? null,
       },
-    });
-    const data = await res.json();
-    if ("tradeEntry" in data) {
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.id === editingEntry.id ? (data.tradeEntry as TradeEntry) : e,
-        ),
-      );
-    }
-    setEditingEntry(null);
-  }, [editingEntry, editResult, editR, editEntryAt]);
+      { onSuccess: () => setEditingEntry(null) },
+    );
+  }, [editingEntry, editResult, editR, editEntryAt, updateTradeEntry]);
 
   return (
     <YStack flex={1} backgroundColor="#fff">
@@ -256,20 +241,31 @@ export default function SessionScreen() {
               );
             })()}
           </XStack>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10, paddingBottom: 96 }}
-          >
-            {entries.map((entry) => (
-              <TradeCard
-                key={entry.id}
-                entry={entry}
-                editMode={editMode}
-                onDelete={() => deleteEntry(entry.id)}
-                onTap={() => openEditDialog(entry)}
-              />
-            ))}
-          </ScrollView>
+          {isLoading ? (
+            <YStack flex={1} alignItems="center" justifyContent="center">
+              <ActivityIndicator size="large" />
+            </YStack>
+          ) : isError ? (
+            <YStack flex={1} alignItems="center" justifyContent="center" gap="$3">
+              <Text color="$color10">Failed to load trade entries</Text>
+              <Button onPress={() => refetch()}>Retry</Button>
+            </YStack>
+          ) : (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ gap: 10, paddingBottom: 96 }}
+            >
+              {entries.map((entry) => (
+                <TradeCard
+                  key={entry.id}
+                  entry={entry}
+                  editMode={editMode}
+                  onDelete={() => deleteEntry(entry.id)}
+                  onTap={() => openEditDialog(entry)}
+                />
+              ))}
+            </ScrollView>
+          )}
         </YStack>
       </SafeAreaView>
 

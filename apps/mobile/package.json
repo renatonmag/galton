@@ -11,6 +11,7 @@
     "@tamagui/config": "^2.3.3",
     "@tamagui/font-inter": "^2.3.3",
     "@tamagui/portal": "^2.3.3",
+    "@tanstack/react-query": "^5.101.2",
     "expo": "~56.0.12",
     "expo-audio": "~56.0.12",
     "expo-auth-session": "~56.0.14",

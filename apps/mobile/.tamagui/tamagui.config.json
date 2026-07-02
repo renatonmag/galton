@@ -120036,39 +120036,7 @@
     "selectionStyles": "Function",
     "settings": {
       "webContainerType": "inline-size",
-      "mediaQueryDefaultActive": {
-        "touchable": false,
-        "hoverable": true,
-        "max-xxl": true,
-        "max-xl": true,
-        "max-lg": true,
-        "max-md": true,
-        "max-sm": true,
-        "max-xs": true,
-        "max-xxs": false,
-        "max-xxxs": false,
-        "xxxs": true,
-        "xxs": true,
-        "xs": true,
-        "sm": false,
-        "md": false,
-        "lg": false,
-        "xl": false,
-        "xxl": false,
-        "max-height-sm": false,
-        "max-height-md": false,
-        "max-height-lg": true,
-        "height-sm": true,
-        "height-md": true,
-        "height-lg": false
-      },
-      "defaultFont": "body",
-      "fastSchemeChange": true,
-      "shouldAddPrefersColorThemes": true,
-      "allowedStyleValues": "somewhat-strict-web",
-      "addThemeClassName": "html",
-      "onlyAllowShorthands": true,
-      "styleCompat": "web"
+      "onlyAllowShorthands": false
     },
     "animations": {
       "isReactNative": false,
@@ -120163,7 +120131,6 @@
     },
     "parsed": true,
     "getNewCSS": "Function",
-    "defaultFont": "body",
     "fontSizeTokens": {},
     "specificTokens": {
       "$radius.0": {
@@ -120909,7 +120876,7 @@
         "variable": ""
       }
     },
-    "defaultFontToken": "$body",
+    "defaultFontToken": "",
     "shorthands": {
       "text": "textAlign",
       "b": "bottom",
