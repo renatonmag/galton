@@ -1,9 +1,10 @@
-import { api } from "@/lib/api";
+import { api, type TradeEntry } from "@/lib/api";
+import { computeLocalDecision, type Result } from "@/lib/decision";
 import { queryKeys } from "@/lib/query-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseResponse } from "hono/client";
 
-type Result = "open" | "profit" | "loss" | "breakeven";
+let tempIdSeq = 0;
 
 export function useTradeEntries(sessionId: string) {
   return useQuery({
@@ -30,7 +31,32 @@ export function useCreateTradeEntry(sessionId: string) {
       );
       return tradeEntry;
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      const key = queryKeys.tradeEntries(sessionId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<TradeEntry[]>(key);
+      const { ratio, decision } = computeLocalDecision(previous ?? []);
+      const optimisticEntry: TradeEntry = {
+        id: `temp-${Date.now()}-${tempIdSeq++}`,
+        sessionId,
+        decision,
+        result: "open",
+        r: "",
+        successRatio: ratio.toFixed(4),
+        entryAt: null,
+        createdAt: new Date().toISOString(),
+      };
+      queryClient.setQueryData<TradeEntry[]>(key, (old) =>
+        old ? [...old, optimisticEntry] : [optimisticEntry],
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context) {
+        queryClient.setQueryData(queryKeys.tradeEntries(sessionId), context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tradeEntries(sessionId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats });
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions });
@@ -50,7 +76,25 @@ export function useUpdateTradeEntry(sessionId: string) {
       );
       return tradeEntry;
     },
-    onSuccess: () => {
+    onMutate: async (input) => {
+      const key = queryKeys.tradeEntries(sessionId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<TradeEntry[]>(key);
+      queryClient.setQueryData<TradeEntry[]>(key, (old) =>
+        old?.map((e) =>
+          e.id === input.id
+            ? { ...e, result: input.result, r: input.r, entryAt: input.entryAt }
+            : e,
+        ),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context) {
+        queryClient.setQueryData(queryKeys.tradeEntries(sessionId), context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tradeEntries(sessionId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats });
     },
@@ -64,7 +108,19 @@ export function useDeleteTradeEntry(sessionId: string) {
       await parseResponse(api["trade-entries"][":id"].$delete({ param: { id } }));
       return id;
     },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      const key = queryKeys.tradeEntries(sessionId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<TradeEntry[]>(key);
+      queryClient.setQueryData<TradeEntry[]>(key, (old) => old?.filter((e) => e.id !== id));
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context) {
+        queryClient.setQueryData(queryKeys.tradeEntries(sessionId), context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tradeEntries(sessionId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats });
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions });

@@ -6,6 +6,7 @@ import {
 } from "@/hooks/queries/use-trade-entries";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { type TradeEntry } from "@/lib/api";
+import { computeLocalDecision, type Result } from "@/lib/decision";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -20,26 +21,6 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, Modal, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Input, Text, XStack, YStack } from "tamagui";
-
-type Result = "open" | "profit" | "loss" | "breakeven";
-
-function computeLocalDecision(entries: TradeEntry[]): {
-  ratio: number;
-  decision: "TRADE" | "NO_TRADE";
-} {
-  let profit = 0,
-    loss = 0,
-    breakeven = 0;
-  for (const e of entries) {
-    if (e.result === "profit") profit++;
-    else if (e.result === "loss") loss++;
-    else if (e.result === "breakeven") breakeven++;
-  }
-  const denominator = profit + loss + breakeven;
-  if (denominator === 0) return { ratio: 0, decision: "TRADE" };
-  const ratio = (profit + breakeven) / denominator;
-  return { ratio, decision: ratio >= 0.5 ? "TRADE" : "NO_TRADE" };
-}
 
 function fmtTime(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -153,9 +134,8 @@ export default function SessionScreen() {
   }, [entries]);
 
   const saveNewTrade = useCallback(() => {
-    createTradeEntry.mutate(undefined, {
-      onSuccess: () => setSheetVisible(false),
-    });
+    createTradeEntry.mutate();
+    setSheetVisible(false);
   }, [createTradeEntry]);
 
   const deleteEntry = useCallback(
@@ -182,15 +162,13 @@ export default function SessionScreen() {
 
   const saveEdit = useCallback(() => {
     if (!editingEntry) return;
-    updateTradeEntry.mutate(
-      {
-        id: editingEntry.id,
-        result: editResult,
-        r: editR.trim() || editingEntry.r,
-        entryAt: editEntryAt?.toISOString() ?? null,
-      },
-      { onSuccess: () => setEditingEntry(null) },
-    );
+    updateTradeEntry.mutate({
+      id: editingEntry.id,
+      result: editResult,
+      r: editR.trim() || editingEntry.r,
+      entryAt: editEntryAt?.toISOString() ?? null,
+    });
+    setEditingEntry(null);
   }, [editingEntry, editResult, editR, editEntryAt, updateTradeEntry]);
 
   return (
