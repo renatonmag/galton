@@ -1,4 +1,4 @@
-import { api, type TradeEntry } from "@/lib/api";
+import { api, uploadTradeEntryComment, type TradeEntry } from "@/lib/api";
 import { computeLocalDecision, type Result } from "@/lib/decision";
 import { queryKeys } from "@/lib/query-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +44,7 @@ export function useCreateTradeEntry(sessionId: string) {
         r: "",
         successRatio: ratio.toFixed(4),
         entryAt: null,
+        comment: null,
         createdAt: new Date().toISOString(),
       };
       queryClient.setQueryData<TradeEntry[]>(key, (old) =>
@@ -67,11 +68,22 @@ export function useCreateTradeEntry(sessionId: string) {
 export function useUpdateTradeEntry(sessionId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; result: Result; r: string; entryAt: string | null }) => {
+    mutationFn: async (input: {
+      id: string;
+      result: Result;
+      r: string;
+      entryAt: string | null;
+      comment?: string | null;
+    }) => {
       const { tradeEntry } = await parseResponse(
         api["trade-entries"][":id"].$patch({
           param: { id: input.id },
-          json: { result: input.result, r: input.r, entryAt: input.entryAt },
+          json: {
+            result: input.result,
+            r: input.r,
+            entryAt: input.entryAt,
+            ...(input.comment !== undefined && { comment: input.comment }),
+          },
         }),
       );
       return tradeEntry;
@@ -83,7 +95,13 @@ export function useUpdateTradeEntry(sessionId: string) {
       queryClient.setQueryData<TradeEntry[]>(key, (old) =>
         old?.map((e) =>
           e.id === input.id
-            ? { ...e, result: input.result, r: input.r, entryAt: input.entryAt }
+            ? {
+                ...e,
+                result: input.result,
+                r: input.r,
+                entryAt: input.entryAt,
+                ...(input.comment !== undefined && { comment: input.comment }),
+              }
             : e,
         ),
       );
@@ -124,6 +142,25 @@ export function useDeleteTradeEntry(sessionId: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.tradeEntries(sessionId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats });
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions });
+    },
+  });
+}
+
+export function useTranscribeTradeEntryComment(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; audioUri: string; mimeType: string }) => {
+      const { tradeEntry } = await uploadTradeEntryComment(input.id, input.audioUri, input.mimeType);
+      return tradeEntry;
+    },
+    onSuccess: (tradeEntry) => {
+      const key = queryKeys.tradeEntries(sessionId);
+      queryClient.setQueryData<TradeEntry[]>(key, (old) =>
+        old?.map((e) => (e.id === tradeEntry.id ? { ...e, comment: tradeEntry.comment } : e)),
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tradeEntries(sessionId) });
     },
   });
 }

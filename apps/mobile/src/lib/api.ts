@@ -34,3 +34,41 @@ export type TradeEntry = InferResponseType<
   200
 >["tradeEntries"][number];
 export type Stats = InferResponseType<typeof api.stats.$get, 200>;
+
+export async function uploadTradeEntryComment(
+  tradeEntryId: string,
+  audioUri: string,
+  mimeType: string,
+): Promise<{ tradeEntry: TradeEntry }> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("audio", {
+      uri: audioUri,
+      name: "recording.m4a",
+      type: mimeType,
+    } as unknown as Blob);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${BASE_URL}/trade-entries/${tradeEntryId}/comment`);
+    if (session?.access_token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          reject(new Error("Invalid server response"));
+        }
+      } else {
+        reject(new Error(`Transcription failed: ${xhr.status}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.send(formData);
+  });
+}

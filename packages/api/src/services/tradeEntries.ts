@@ -71,7 +71,12 @@ export const tradeEntriesService = {
   update: async (
     id: string,
     userId: string,
-    data: { result?: "open" | "profit" | "loss" | "breakeven"; r?: string; entryAt?: string | null },
+    data: {
+      result?: "open" | "profit" | "loss" | "breakeven";
+      r?: string;
+      entryAt?: string | null;
+      comment?: string | null;
+    },
   ) => {
     const existing = await db
       .select()
@@ -86,7 +91,26 @@ export const tradeEntriesService = {
         ...(data.result && { result: data.result }),
         ...(data.r && { r: data.r }),
         ...(data.entryAt !== undefined && { entryAt: data.entryAt ? new Date(data.entryAt) : null }),
+        ...(data.comment !== undefined && { comment: data.comment }),
       })
+      .where(eq(tradeEntries.id, id))
+      .returning();
+    return rows[0];
+  },
+
+  appendComment: async (id: string, userId: string, text: string) => {
+    const existing = await db
+      .select({ comment: tradeEntries.comment })
+      .from(tradeEntries)
+      .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
+      .where(and(eq(tradeEntries.id, id), eq(sessions.userId, userId)));
+    if (!existing[0]) return null;
+
+    const combined = existing[0].comment ? `${existing[0].comment}\n\n${text}` : text;
+
+    const rows = await db
+      .update(tradeEntries)
+      .set({ comment: combined })
       .where(eq(tradeEntries.id, id))
       .returning();
     return rows[0];

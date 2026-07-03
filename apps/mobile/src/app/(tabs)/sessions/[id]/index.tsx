@@ -2,17 +2,21 @@ import {
   useCreateTradeEntry,
   useDeleteTradeEntry,
   useTradeEntries,
+  useTranscribeTradeEntryComment,
   useUpdateTradeEntry,
 } from "@/hooks/queries/use-trade-entries";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { type TradeEntry } from "@/lib/api";
 import { computeLocalDecision, type Result } from "@/lib/decision";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { requestRecordingPermissionsAsync, RecordingPresets, useAudioRecorder } from "expo-audio";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  AudioLines,
   Check,
   ChevronLeft,
   Plus,
+  Square,
   SquarePen,
   Trash,
   X,
@@ -119,13 +123,19 @@ export default function SessionScreen() {
   const [editResult, setEditResult] = useState<Result>("open");
   const [editR, setEditR] = useState("");
   const [editEntryAt, setEditEntryAt] = useState<Date | null>(null);
+  const [editComment, setEditComment] = useState("");
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [recordingState, setRecordingState] = useState<"idle" | "recording" | "uploading">(
+    "idle",
+  );
 
   const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
   useRefreshOnFocus(refetch);
   const createTradeEntry = useCreateTradeEntry(id);
   const updateTradeEntry = useUpdateTradeEntry(id);
   const deleteTradeEntry = useDeleteTradeEntry(id);
+  const transcribeComment = useTranscribeTradeEntryComment(id);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   const openAddSheet = useCallback(() => {
     const dec = computeLocalDecision(entries);
@@ -157,7 +167,9 @@ export default function SessionScreen() {
     setEditResult(entry.result);
     setEditR(entry.r);
     setEditEntryAt(entry.entryAt ? new Date(entry.entryAt) : null);
+    setEditComment(entry.comment ?? "");
     setShowTimePicker(false);
+    setRecordingState("idle");
   }, []);
 
   const saveEdit = useCallback(() => {
@@ -167,9 +179,47 @@ export default function SessionScreen() {
       result: editResult,
       r: editR.trim() || editingEntry.r,
       entryAt: editEntryAt?.toISOString() ?? null,
+      comment: editComment.trim() || null,
     });
     setEditingEntry(null);
-  }, [editingEntry, editResult, editR, editEntryAt, updateTradeEntry]);
+  }, [editingEntry, editResult, editR, editEntryAt, editComment, updateTradeEntry]);
+
+  const handleMicPress = useCallback(async () => {
+    if (!editingEntry || recordingState === "uploading") return;
+
+    if (recordingState === "idle") {
+      const { granted } = await requestRecordingPermissionsAsync();
+      if (!granted) {
+        Alert.alert("Permission required", "Enable microphone access in settings.");
+        return;
+      }
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setRecordingState("recording");
+      return;
+    }
+
+    await recorder.stop();
+    const uri = recorder.uri;
+    if (!uri) {
+      setRecordingState("idle");
+      return;
+    }
+    setRecordingState("uploading");
+    try {
+      const tradeEntry = await transcribeComment.mutateAsync({
+        id: editingEntry.id,
+        audioUri: uri,
+        mimeType: "audio/m4a",
+      });
+      setEditComment(tradeEntry.comment ?? "");
+    } catch (err) {
+      console.error("[Comment] transcription error:", err);
+      Alert.alert("Error", "Could not transcribe audio. Try again.");
+    } finally {
+      setRecordingState("idle");
+    }
+  }, [editingEntry, recordingState, recorder, transcribeComment]);
 
   return (
     <YStack flex={1} backgroundColor="#fff">
@@ -352,6 +402,40 @@ export default function SessionScreen() {
                 }}
               />
             )}
+            <Text fontSize="$3" fontWeight="600" color="$blue12">
+              Comment
+            </Text>
+            <XStack gap="$2.5" alignItems="flex-end">
+              <Input
+                flex={1}
+                multiline
+                minHeight={44}
+                size="$4"
+                borderRadius={10}
+                value={editComment}
+                onChangeText={setEditComment}
+                placeholder="Add a comment..."
+                placeholderTextColor="#aaa"
+              />
+              <YStack
+                width={44}
+                height={44}
+                borderRadius={22}
+                alignItems="center"
+                justifyContent="center"
+                backgroundColor={recordingState === "recording" ? "#E53E3E" : "$blue8"}
+                pressStyle={{ opacity: 0.8 }}
+                onPress={handleMicPress}
+              >
+                {recordingState === "uploading" ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : recordingState === "recording" ? (
+                  <Square color="#fff" size={18} fill="#fff" />
+                ) : (
+                  <AudioLines color="#fff" size={20} />
+                )}
+              </YStack>
+            </XStack>
             <XStack gap="$2.5" mt="$1">
               <YStack
                 flex={1}
