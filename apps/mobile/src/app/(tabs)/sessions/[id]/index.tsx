@@ -3,6 +3,7 @@ import {
   useDeleteTradeEntry,
   useTradeEntries,
 } from "@/hooks/queries/use-trade-entries";
+import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { type TradeEntry } from "@/lib/api";
 import { computeLocalDecision } from "@/lib/decision";
@@ -95,6 +96,23 @@ function TradeCard({
   );
 }
 
+function HeaderStat({ label, ratio }: { label: string; ratio: number }) {
+  return (
+    <XStack alignItems="baseline" gap="$1">
+      <Text
+        fontSize="$4"
+        fontWeight="700"
+        color={ratio >= 0.5 ? "#276749" : "#9B2C2C"}
+      >
+        {Math.round(ratio * 100)}%
+      </Text>
+      <Text fontSize={11} color="$color8">
+        {label}
+      </Text>
+    </XStack>
+  );
+}
+
 export default function SessionScreen() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
@@ -107,6 +125,7 @@ export default function SessionScreen() {
   } | null>(null);
 
   const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
+  const { data: stats } = useStats();
   useRefreshOnFocus(refetch);
   const createTradeEntry = useCreateTradeEntry(id);
   const deleteTradeEntry = useDeleteTradeEntry(id);
@@ -169,20 +188,17 @@ export default function SessionScreen() {
             <Text fontSize={22} fontWeight="700" color="$blue12">
               {name}
             </Text>
-            {(() => {
-              const { ratio, decision } = computeLocalDecision(entries);
-              if (entries.filter((e) => e.result !== "open").length === 0)
-                return null;
-              return (
-                <Text
-                  fontSize="$4"
-                  fontWeight="700"
-                  color={decision === "TRADE" ? "#276749" : "#9B2C2C"}
-                >
-                  {Math.round(ratio * 100)}%
-                </Text>
-              );
-            })()}
+            <XStack alignItems="center" gap="$3">
+              {entries.some((e) => e.result !== "open") && (
+                <HeaderStat
+                  label="session"
+                  ratio={computeLocalDecision(entries).ratio}
+                />
+              )}
+              {stats?.noEntryWinRate != null && (
+                <HeaderStat label="no entry" ratio={stats.noEntryWinRate} />
+              )}
+            </XStack>
           </XStack>
           {isLoading ? (
             <YStack flex={1} alignItems="center" justifyContent="center">
