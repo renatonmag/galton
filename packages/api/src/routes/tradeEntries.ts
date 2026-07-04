@@ -6,6 +6,7 @@ import { transcriptionService } from "../services/transcription.js";
 
 type UpdateTradeEntryInput = {
   result?: "open" | "profit" | "loss" | "breakeven";
+  direction?: "buy" | "sell" | null;
   r?: string;
   entryAt?: string | null;
   comment?: string | null;

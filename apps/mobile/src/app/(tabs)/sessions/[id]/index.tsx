@@ -14,6 +14,8 @@ import { type TradeEntry } from "@/lib/api";
 import { computeLocalDecision } from "@/lib/decision";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  ArrowDown,
+  ArrowUp,
   Check,
   ChevronLeft,
   Clipboard,
@@ -76,9 +78,17 @@ function TradeCard({
               {isTrade ? "TRADE" : "NO TRADE"}
             </Text>
           </XStack>
-          <Text fontSize="$3" color="$color10">
-            {entry.r}
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Text fontSize="$3" color="$color10">
+              {entry.r}
+            </Text>
+            {entry.direction &&
+              (entry.direction === "buy" ? (
+                <ArrowUp color="#276749" size={12} />
+              ) : (
+                <ArrowDown color="#9B2C2C" size={12} />
+              ))}
+          </XStack>
         </YStack>
         <XStack alignItems="center" gap="$2.5">
           {isTrade ? (

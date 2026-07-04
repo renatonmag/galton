@@ -1,6 +1,6 @@
 import { useTradeEntries, useTranscribeTradeEntryComment, useUpdateTradeEntry } from "@/hooks/queries/use-trade-entries";
 import { type TradeEntry } from "@/lib/api";
-import { type Result } from "@/lib/decision";
+import { type Direction, type Result } from "@/lib/decision";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { requestRecordingPermissionsAsync, RecordingPresets, useAudioRecorder } from "expo-audio";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -44,6 +44,7 @@ function EditTradeForm({ sessionId, entry }: { sessionId: string; entry: TradeEn
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   const [editResult, setEditResult] = useState<Result>(entry.result);
+  const [editDirection, setEditDirection] = useState<Direction | null>(entry.direction);
   const [editR, setEditR] = useState(entry.r);
   const [editEntryAt, setEditEntryAt] = useState<Date | null>(
     entry.entryAt ? new Date(entry.entryAt) : null,
@@ -58,12 +59,13 @@ function EditTradeForm({ sessionId, entry }: { sessionId: string; entry: TradeEn
     updateTradeEntry.mutate({
       id: entry.id,
       result: editResult,
+      direction: editDirection,
       r: editR.trim() || entry.r,
       entryAt: editEntryAt?.toISOString() ?? null,
       comment: editComment.trim() || null,
     });
     router.back();
-  }, [entry, editResult, editR, editEntryAt, editComment, updateTradeEntry, router]);
+  }, [entry, editResult, editDirection, editR, editEntryAt, editComment, updateTradeEntry, router]);
 
   const handleMicPress = useCallback(async () => {
     if (recordingState === "uploading") return;
@@ -134,6 +136,10 @@ function EditTradeForm({ sessionId, entry }: { sessionId: string; entry: TradeEn
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
+            <Text fontSize="$3" fontWeight="600" color="$blue12">
+              Direction
+            </Text>
+            <DirectionSegment value={editDirection} onChange={setEditDirection} />
             <ResultSegment value={editResult} onChange={setEditResult} />
             <Text fontSize="$3" fontWeight="600" color="$blue12">
               R
@@ -244,6 +250,48 @@ const RESULTS: { value: Result; label: string }[] = [
   { value: "loss", label: "Loss" },
   { value: "breakeven", label: "BE" },
 ];
+
+const DIRECTIONS: { value: Direction; label: string }[] = [
+  { value: "buy", label: "Buy" },
+  { value: "sell", label: "Sell" },
+];
+
+function DirectionSegment({
+  value,
+  onChange,
+}: {
+  value: Direction | null;
+  onChange: (v: Direction) => void;
+}) {
+  return (
+    <XStack
+      borderRadius={10}
+      borderWidth={1}
+      borderColor="$borderColor"
+      overflow="hidden"
+    >
+      {DIRECTIONS.map((d) => (
+        <YStack
+          key={d.value}
+          flex={1}
+          py="$2.5"
+          alignItems="center"
+          backgroundColor={value === d.value ? "$blue12" : "#fff"}
+          pressStyle={{ opacity: 0.8 }}
+          onPress={() => onChange(d.value)}
+        >
+          <Text
+            fontSize="$3"
+            fontWeight="600"
+            color={value === d.value ? "#fff" : "$color8"}
+          >
+            {d.label}
+          </Text>
+        </YStack>
+      ))}
+    </XStack>
+  );
+}
 
 function ResultSegment({
   value,

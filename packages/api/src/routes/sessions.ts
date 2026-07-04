@@ -6,6 +6,7 @@ import { tradeEntriesService } from "../services/tradeEntries.js";
 
 type CreateTradeEntryInput = {
   result?: "open" | "profit" | "loss" | "breakeven";
+  direction?: "buy" | "sell";
   r?: string;
 };
 

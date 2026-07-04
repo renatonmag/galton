@@ -46,7 +46,11 @@ export const tradeEntriesService = {
   create: async (
     sessionId: string,
     userId: string,
-    data: { result?: "open" | "profit" | "loss" | "breakeven"; r?: string },
+    data: {
+      result?: "open" | "profit" | "loss" | "breakeven";
+      direction?: "buy" | "sell";
+      r?: string;
+    },
   ) => {
     const session = await db
       .select()
@@ -61,6 +65,7 @@ export const tradeEntriesService = {
         sessionId,
         decision,
         result: data.result ?? "open",
+        direction: data.direction,
         r: data.r ?? "",
         successRatio: ratio,
       })
@@ -73,6 +78,7 @@ export const tradeEntriesService = {
     userId: string,
     data: {
       result?: "open" | "profit" | "loss" | "breakeven";
+      direction?: "buy" | "sell" | null;
       r?: string;
       entryAt?: string | null;
       comment?: string | null;
@@ -89,6 +95,7 @@ export const tradeEntriesService = {
       .update(tradeEntries)
       .set({
         ...(data.result && { result: data.result }),
+        ...(data.direction !== undefined && { direction: data.direction }),
         ...(data.r && { r: data.r }),
         ...(data.entryAt !== undefined && { entryAt: data.entryAt ? new Date(data.entryAt) : null }),
         ...(data.comment !== undefined && { comment: data.comment }),

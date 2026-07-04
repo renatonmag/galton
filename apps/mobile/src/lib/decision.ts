@@ -1,6 +1,7 @@
 import type { TradeEntry } from "@/lib/api";
 
 export type Result = "open" | "profit" | "loss" | "breakeven";
+export type Direction = "buy" | "sell";
 
 export function computeLocalDecision(entries: TradeEntry[]): {
   ratio: number;

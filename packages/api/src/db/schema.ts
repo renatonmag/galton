@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 
 export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
 export const resultEnum = pgEnum("result", ["open", "profit", "loss", "breakeven"]);
+export const directionEnum = pgEnum("direction", ["buy", "sell"]);
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -26,6 +27,7 @@ export const tradeEntries = pgTable("trade_entries", {
     .references(() => sessions.id, { onDelete: "cascade" }),
   decision: decisionEnum("decision").notNull(),
   result: resultEnum("result").notNull().default("open"),
+  direction: directionEnum("direction"),
   r: text("r").notNull(),
   successRatio: numeric("success_ratio", { precision: 5, scale: 4 }).notNull(),
   entryAt: timestamp("entry_at", { withTimezone: true }),

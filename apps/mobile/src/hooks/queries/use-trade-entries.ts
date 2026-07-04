@@ -1,5 +1,5 @@
 import { api, uploadTradeEntryComment, type TradeEntry } from "@/lib/api";
-import { computeLocalDecision, type Result } from "@/lib/decision";
+import { computeLocalDecision, type Direction, type Result } from "@/lib/decision";
 import { queryKeys } from "@/lib/query-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseResponse } from "hono/client";
@@ -41,6 +41,7 @@ export function useCreateTradeEntry(sessionId: string) {
         sessionId,
         decision,
         result: "open",
+        direction: null,
         r: "",
         successRatio: ratio.toFixed(4),
         entryAt: null,
@@ -71,6 +72,7 @@ export function useUpdateTradeEntry(sessionId: string) {
     mutationFn: async (input: {
       id: string;
       result: Result;
+      direction?: Direction | null;
       r: string;
       entryAt: string | null;
       comment?: string | null;
@@ -82,6 +84,7 @@ export function useUpdateTradeEntry(sessionId: string) {
             result: input.result,
             r: input.r,
             entryAt: input.entryAt,
+            ...(input.direction !== undefined && { direction: input.direction }),
             ...(input.comment !== undefined && { comment: input.comment }),
           },
         }),
@@ -100,6 +103,7 @@ export function useUpdateTradeEntry(sessionId: string) {
                 result: input.result,
                 r: input.r,
                 entryAt: input.entryAt,
+                ...(input.direction !== undefined && { direction: input.direction }),
                 ...(input.comment !== undefined && { comment: input.comment }),
               }
             : e,
