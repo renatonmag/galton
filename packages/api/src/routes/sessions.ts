@@ -28,6 +28,18 @@ const app = new Hono<AppEnv>()
     if (!session) return c.json({ error: "Not found" }, 404);
     return c.json({ session });
   })
+  .post("/:id/review", async (c) => {
+    const userId = c.get("userId");
+    const session = await sessionsService.markReviewed(c.req.param("id"), userId);
+    if (!session) return c.json({ error: "Not found" }, 404);
+    return c.json({ session });
+  })
+  .delete("/:id/review", async (c) => {
+    const userId = c.get("userId");
+    const session = await sessionsService.reopenReview(c.req.param("id"), userId);
+    if (!session) return c.json({ error: "Not found" }, 404);
+    return c.json({ session });
+  })
   .get("/:sessionId/trade-entries", async (c) => {
     const userId = c.get("userId");
     const sessionId = c.req.param("sessionId");

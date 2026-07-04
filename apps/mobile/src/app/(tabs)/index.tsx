@@ -1,11 +1,14 @@
 import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
+import { Settings } from "lucide-react-native";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { data: stats, isLoading, isError, refetch } = useStats();
   useRefreshOnFocus(refetch);
 
@@ -19,9 +22,14 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Performance</Text>
-          <TouchableOpacity onPress={() => supabase.auth.signOut()} hitSlop={8}>
-            <Text style={styles.signOut}>Sign out</Text>
-          </TouchableOpacity>
+          <View style={styles.titleRowActions}>
+            <TouchableOpacity onPress={() => router.push("/settings")} hitSlop={8}>
+              <Settings color="#888" size={20} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => supabase.auth.signOut()} hitSlop={8}>
+              <Text style={styles.signOut}>Sign out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.ratioContainer}>
@@ -86,6 +94,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 32,
+  },
+  titleRowActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   title: {
     fontSize: 22,

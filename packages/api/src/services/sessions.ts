@@ -10,6 +10,7 @@ export const sessionsService = {
         userId: sessions.userId,
         name: sessions.name,
         openedAt: sessions.openedAt,
+        reviewedAt: sessions.reviewedAt,
         tradeCount: count(tradeEntries.id),
       })
       .from(sessions)
@@ -33,6 +34,24 @@ export const sessionsService = {
   delete: async (id: string, userId: string) => {
     const rows = await db
       .delete(sessions)
+      .where(and(eq(sessions.id, id), eq(sessions.userId, userId)))
+      .returning();
+    return rows[0];
+  },
+
+  markReviewed: async (id: string, userId: string) => {
+    const rows = await db
+      .update(sessions)
+      .set({ reviewedAt: new Date() })
+      .where(and(eq(sessions.id, id), eq(sessions.userId, userId)))
+      .returning();
+    return rows[0];
+  },
+
+  reopenReview: async (id: string, userId: string) => {
+    const rows = await db
+      .update(sessions)
+      .set({ reviewedAt: null })
       .where(and(eq(sessions.id, id), eq(sessions.userId, userId)))
       .returning();
     return rows[0];

@@ -34,6 +34,10 @@ export type TradeEntry = InferResponseType<
   200
 >["tradeEntries"][number];
 export type Stats = InferResponseType<typeof api.stats.$get, 200>;
+export type UserPreferences = InferResponseType<
+  (typeof api)["user-preferences"]["$get"],
+  200
+>["userPreferences"];
 
 export async function uploadTradeEntryComment(
   tradeEntryId: string,

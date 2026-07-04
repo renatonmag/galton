@@ -28,4 +28,5 @@ export const queryKeys = {
   sessions: ["sessions"] as const,
   tradeEntries: (sessionId: string) => ["sessions", sessionId, "trade-entries"] as const,
   stats: ["stats"] as const,
+  userPreferences: ["user-preferences"] as const,
 };

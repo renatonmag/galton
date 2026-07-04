@@ -44,3 +44,37 @@ export function useDeleteSession() {
     },
   });
 }
+
+export function useMarkSessionReviewed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { session } = await parseResponse(
+        api.sessions[":id"].review.$post({ param: { id } }),
+      );
+      return session;
+    },
+    onSuccess: (session) => {
+      queryClient.setQueryData<Session[]>(queryKeys.sessions, (old) =>
+        old?.map((s) => (s.id === session.id ? { ...s, reviewedAt: session.reviewedAt } : s)),
+      );
+    },
+  });
+}
+
+export function useReopenSessionReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { session } = await parseResponse(
+        api.sessions[":id"].review.$delete({ param: { id } }),
+      );
+      return session;
+    },
+    onSuccess: (session) => {
+      queryClient.setQueryData<Session[]>(queryKeys.sessions, (old) =>
+        old?.map((s) => (s.id === session.id ? { ...s, reviewedAt: session.reviewedAt } : s)),
+      );
+    },
+  });
+}

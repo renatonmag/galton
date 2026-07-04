@@ -1,4 +1,4 @@
-import { numeric, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { numeric, pgEnum, pgTable, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
@@ -9,6 +9,14 @@ export const sessions = pgTable("sessions", {
   userId: uuid("user_id").notNull(),
   name: text("name").notNull(),
   openedAt: timestamp("opened_at", { withTimezone: true }).defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+});
+
+export const userPreferences = pgTable("user_preferences", {
+  userId: uuid("user_id").primaryKey(),
+  notificationTime: time("notification_time").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const tradeEntries = pgTable("trade_entries", {

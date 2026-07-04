@@ -1,3 +1,5 @@
+import { useReviewNotificationsSync } from "@/hooks/use-review-notifications";
+import { configureNotificationHandler } from "@/lib/notifications";
 import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
@@ -12,6 +14,12 @@ import { TamaguiProvider } from "tamagui";
 import { tamaguiConfig } from "../../tamagui.config";
 
 SplashScreen.preventAutoHideAsync();
+configureNotificationHandler();
+
+function ReviewNotificationsGate() {
+  useReviewNotificationsSync();
+  return null;
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -82,8 +90,13 @@ export default function RootLayout() {
         config={tamaguiConfig}
         defaultTheme={colorScheme ?? "light"}
       >
+        {session && <ReviewNotificationsGate />}
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="settings"
+            options={{ presentation: "modal", headerShown: false }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </TamaguiProvider>

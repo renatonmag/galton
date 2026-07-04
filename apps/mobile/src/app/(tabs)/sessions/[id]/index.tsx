@@ -3,12 +3,26 @@ import {
   useDeleteTradeEntry,
   useTradeEntries,
 } from "@/hooks/queries/use-trade-entries";
+import {
+  useMarkSessionReviewed,
+  useReopenSessionReview,
+  useSessions,
+} from "@/hooks/queries/use-sessions";
 import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { type TradeEntry } from "@/lib/api";
 import { computeLocalDecision } from "@/lib/decision";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Check, ChevronLeft, Plus, SquarePen, Trash, X } from "lucide-react-native";
+import {
+  Check,
+  ChevronLeft,
+  Clipboard,
+  ClipboardCheck,
+  Plus,
+  SquarePen,
+  Trash,
+  X,
+} from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -126,9 +140,27 @@ export default function SessionScreen() {
 
   const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
   const { data: stats } = useStats();
+  const { data: sessions } = useSessions();
+  const session = sessions?.find((s) => s.id === id);
   useRefreshOnFocus(refetch);
   const createTradeEntry = useCreateTradeEntry(id);
   const deleteTradeEntry = useDeleteTradeEntry(id);
+  const markReviewed = useMarkSessionReviewed();
+  const reopenReview = useReopenSessionReview();
+
+  const toggleReview = useCallback(() => {
+    if (session?.reviewedAt) {
+      Alert.alert("Reopen review", "Reopen review for this session?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Reopen", onPress: () => reopenReview.mutate(id) },
+      ]);
+    } else {
+      Alert.alert("Mark as reviewed", "Mark this session as reviewed?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Mark reviewed", onPress: () => markReviewed.mutate(id) },
+      ]);
+    }
+  }, [session?.reviewedAt, id, markReviewed, reopenReview]);
 
   const openAddSheet = useCallback(() => {
     const dec = computeLocalDecision(entries);
@@ -178,9 +210,20 @@ export default function SessionScreen() {
               <ChevronLeft color="#fff" size={22} />
             </YStack>
           )}
-          <Button chromeless p="$1" onPress={() => setEditMode((v) => !v)}>
-            <SquarePen color={editMode ? "#6FA8DC" : "#1A3A5C"} size={20} />
-          </Button>
+          <XStack alignItems="center" gap="$3">
+            {entries.length > 0 && (
+              <Button chromeless p="$1" onPress={toggleReview}>
+                {session?.reviewedAt ? (
+                  <ClipboardCheck color="#276749" size={20} />
+                ) : (
+                  <Clipboard color="#1A3A5C" size={20} />
+                )}
+              </Button>
+            )}
+            <Button chromeless p="$1" onPress={() => setEditMode((v) => !v)}>
+              <SquarePen color={editMode ? "#6FA8DC" : "#1A3A5C"} size={20} />
+            </Button>
+          </XStack>
         </XStack>
 
         <YStack flex={1} px="$5" pt="$3">
