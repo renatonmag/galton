@@ -12,6 +12,11 @@ import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { type TradeEntry } from "@/lib/api";
 import { computeLocalDecision } from "@/lib/decision";
+import {
+  decisionFromRatio,
+  ratioFromCounts,
+  TRADE_THRESHOLD,
+} from "@galton/api/lib/successRatio";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowDown,
@@ -126,7 +131,7 @@ function HeaderStat({ label, ratio }: { label: string; ratio: number }) {
       <Text
         fontSize="$4"
         fontWeight="700"
-        color={ratio >= 0.5 ? "#276749" : "#9B2C2C"}
+        color={ratio >= TRADE_THRESHOLD ? "#276749" : "#9B2C2C"}
       >
         {Math.round(ratio * 100)}%
       </Text>
@@ -173,10 +178,14 @@ export default function SessionScreen() {
   }, [session?.reviewedAt, id, markReviewed, reopenReview]);
 
   const openAddSheet = useCallback(() => {
-    const dec = computeLocalDecision(entries);
-    setPendingDecision(dec);
+    // Mirrors the server's scope: the decision is computed over all of the
+    // user's closed entries across every session, not just this one.
+    const ratio = stats
+      ? ratioFromCounts({ profit: stats.profit, loss: stats.loss, breakeven: stats.breakeven })
+      : null;
+    setPendingDecision({ ratio: ratio ?? 0, decision: decisionFromRatio(ratio) });
     setSheetVisible(true);
-  }, [entries]);
+  }, [stats]);
 
   const saveNewTrade = useCallback(() => {
     createTradeEntry.mutate();

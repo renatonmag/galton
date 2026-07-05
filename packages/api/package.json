@@ -5,7 +5,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/devtools": "^1.0.0",
@@ -25,6 +26,7 @@
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3",
-    "vercel": "^54.18.1"
+    "vercel": "^54.18.1",
+    "vitest": "^4.1.9"
   }
 }

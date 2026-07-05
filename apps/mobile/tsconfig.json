@@ -13,6 +13,9 @@
       ],
       "@galton/api": [
         "../../packages/api/src/index.ts"
+      ],
+      "@galton/api/*": [
+        "../../packages/api/src/*"
       ]
     }
   },
