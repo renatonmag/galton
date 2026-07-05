@@ -1,6 +1,7 @@
-import { and, count, eq, ne } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
+import { computeDecision as computeRatioDecision } from "../lib/successRatio.js";
 
 async function computeDecision(
   userId: string,
@@ -11,21 +12,8 @@ async function computeDecision(
     .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
     .where(and(eq(sessions.userId, userId), ne(tradeEntries.result, "open")));
 
-  let profit = 0;
-  let loss = 0;
-  let breakeven = 0;
-  for (const e of allEntries) {
-    if (e.result === "profit") profit++;
-    else if (e.result === "loss") loss++;
-    else if (e.result === "breakeven") breakeven++;
-  }
-
-  const denominator = profit + loss + breakeven;
-  if (denominator === 0) return { ratio: "0.0000", decision: "TRADE" };
-
-  const ratio = (profit + breakeven) / denominator;
-  const decision: "TRADE" | "NO_TRADE" = ratio >= 0.5 ? "TRADE" : "NO_TRADE";
-  return { ratio: ratio.toFixed(4), decision };
+  const { ratio, decision } = computeRatioDecision(allEntries);
+  return { ratio: ratio === null ? "0.0000" : ratio.toFixed(4), decision };
 }
 
 export const tradeEntriesService = {

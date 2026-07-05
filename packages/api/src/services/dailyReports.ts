@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { dailyReports, sessions, tradeEntries } from "../db/schema.js";
+import { computeRatio } from "../lib/successRatio.js";
 import { userPreferencesService } from "./userPreferences.js";
 
 const WINDOW_DAYS = 7;
@@ -17,20 +18,6 @@ type EntryRow = {
   r: string;
   openedAt: Date;
 };
-
-function computeRatio(closedEntries: EntryRow[]): number | null {
-  let profit = 0;
-  let loss = 0;
-  let breakeven = 0;
-  for (const e of closedEntries) {
-    if (e.result === "profit") profit++;
-    else if (e.result === "loss") loss++;
-    else if (e.result === "breakeven") breakeven++;
-  }
-  const denominator = profit + loss + breakeven;
-  if (denominator === 0) return null;
-  return (profit + breakeven) / denominator;
-}
 
 function windowBoundaries(reportDate: string, timezone: string) {
   const windowEnd = DateTime.fromISO(reportDate, { zone: timezone }).startOf("day");

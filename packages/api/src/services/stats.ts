@@ -1,6 +1,7 @@
-import { and, eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
+import { computeRatio } from "../lib/successRatio.js";
 
 export const statsService = {
   get: async (userId: string) => {
@@ -14,31 +15,19 @@ export const statsService = {
     let loss = 0;
     let breakeven = 0;
     let open = 0;
-    let noEntryProfit = 0;
-    let noEntryLoss = 0;
-    let noEntryBreakeven = 0;
 
     for (const e of allEntries) {
       if (e.result === "profit") profit++;
       else if (e.result === "loss") loss++;
       else if (e.result === "breakeven") breakeven++;
       else open++;
-
-      if (e.entryAt === null && e.result !== "open") {
-        if (e.result === "profit") noEntryProfit++;
-        else if (e.result === "loss") noEntryLoss++;
-        else noEntryBreakeven++;
-      }
     }
 
-    const denominator = profit + loss + breakeven;
-    const successRatio = denominator === 0 ? null : (profit + breakeven) / denominator;
+    const closedEntries = allEntries.filter((e) => e.result !== "open");
+    const noEntryClosedEntries = closedEntries.filter((e) => e.entryAt === null);
 
-    const noEntryDenominator = noEntryProfit + noEntryLoss + noEntryBreakeven;
-    const noEntryWinRate =
-      noEntryDenominator === 0
-        ? null
-        : (noEntryProfit + noEntryBreakeven) / noEntryDenominator;
+    const successRatio = computeRatio(closedEntries);
+    const noEntryWinRate = computeRatio(noEntryClosedEntries);
 
     return {
       successRatio,
