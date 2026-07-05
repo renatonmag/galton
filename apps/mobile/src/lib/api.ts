@@ -38,6 +38,10 @@ export type UserPreferences = InferResponseType<
   (typeof api)["user-preferences"]["$get"],
   200
 >["userPreferences"];
+export type DailyReport = InferResponseType<
+  (typeof api.reports)[":date"]["$get"],
+  200
+>["report"];
 
 export async function uploadTradeEntryComment(
   tradeEntryId: string,

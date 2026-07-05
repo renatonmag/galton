@@ -4,7 +4,8 @@ import { authMiddleware, type AppEnv } from "../middleware/auth.js";
 import { userPreferencesService } from "../services/userPreferences.js";
 
 type UpsertUserPreferencesInput = {
-  notificationTime: string;
+  notificationTime?: string;
+  timezone?: string;
 };
 
 const app = new Hono<AppEnv>()
@@ -20,7 +21,7 @@ const app = new Hono<AppEnv>()
     async (c) => {
       const userId = c.get("userId");
       const data = c.req.valid("json");
-      const userPreferences = await userPreferencesService.upsert(userId, data.notificationTime);
+      const userPreferences = await userPreferencesService.upsert(userId, data);
       return c.json({ userPreferences });
     },
   );

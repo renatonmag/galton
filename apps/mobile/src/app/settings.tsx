@@ -68,14 +68,14 @@ export default function SettingsScreen() {
 function SettingsForm({ preferences }: { preferences: UserPreferences | null }) {
   const updatePreferences = useUpdateUserPreferences();
   const [pendingTime, setPendingTime] = useState<Date | null>(
-    preferences ? timeStringToDate(preferences.notificationTime) : null,
+    preferences?.notificationTime ? timeStringToDate(preferences.notificationTime) : null,
   );
   const [showPicker, setShowPicker] = useState(false);
 
   const handleSave = useCallback(async () => {
     if (!pendingTime) return;
     const granted = await ensureNotificationPermission();
-    updatePreferences.mutate(dateToTimeString(pendingTime));
+    updatePreferences.mutate({ notificationTime: dateToTimeString(pendingTime) });
     if (!granted) {
       Alert.alert(
         "Notifications disabled",

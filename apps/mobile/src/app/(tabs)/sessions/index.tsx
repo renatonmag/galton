@@ -1,7 +1,7 @@
 import { useCreateSession, useDeleteSession, useSessions } from "@/hooks/queries/use-sessions";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { useRouter } from "expo-router";
-import { SquarePen, Trash } from "lucide-react-native";
+import { FileText, SquarePen, Trash } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, Alert, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -34,9 +34,14 @@ export default function SessionsScreen() {
           <Text fontSize={22} fontWeight="700" color="$blue12">
             Sessions
           </Text>
-          <Button chromeless p="$1" onPress={() => setEditMode((v) => !v)}>
-            <SquarePen color={editMode ? "#6FA8DC" : "#1A3A5C"} size={20} />
-          </Button>
+          <XStack alignItems="center" gap="$3">
+            <Button chromeless p="$1" onPress={() => router.push("/(tabs)/sessions/reports")}>
+              <FileText color="#1A3A5C" size={20} />
+            </Button>
+            <Button chromeless p="$1" onPress={() => setEditMode((v) => !v)}>
+              <SquarePen color={editMode ? "#6FA8DC" : "#1A3A5C"} size={20} />
+            </Button>
+          </XStack>
         </XStack>
 
         {isLoading ? (

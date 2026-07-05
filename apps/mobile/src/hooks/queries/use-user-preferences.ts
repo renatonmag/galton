@@ -16,9 +16,9 @@ export function useUserPreferences() {
 export function useUpdateUserPreferences() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (notificationTime: string) => {
+    mutationFn: async (data: { notificationTime?: string; timezone?: string }) => {
       const { userPreferences } = await parseResponse(
-        api["user-preferences"].$put({ json: { notificationTime } }),
+        api["user-preferences"].$put({ json: data }),
       );
       return userPreferences;
     },

@@ -14,10 +14,12 @@
     "ai": "^7.0.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.27",
+    "luxon": "^3.7.2",
     "postgres": "^3.4.9",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.2",
     "@types/node": "^20.11.17",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",

@@ -11,13 +11,24 @@ export const userPreferencesService = {
     return rows[0] ?? null;
   },
 
-  upsert: async (userId: string, notificationTime: string) => {
+  upsert: async (
+    userId: string,
+    data: { notificationTime?: string; timezone?: string },
+  ) => {
     const rows = await db
       .insert(userPreferences)
-      .values({ userId, notificationTime })
+      .values({
+        userId,
+        ...(data.notificationTime !== undefined && { notificationTime: data.notificationTime }),
+        ...(data.timezone !== undefined && { timezone: data.timezone }),
+      })
       .onConflictDoUpdate({
         target: userPreferences.userId,
-        set: { notificationTime, updatedAt: new Date() },
+        set: {
+          ...(data.notificationTime !== undefined && { notificationTime: data.notificationTime }),
+          ...(data.timezone !== undefined && { timezone: data.timezone }),
+          updatedAt: new Date(),
+        },
       })
       .returning();
     return rows[0];

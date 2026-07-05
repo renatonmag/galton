@@ -54,7 +54,7 @@ export async function scheduleReviewNotificationIfNeeded(
 
   await Notifications.cancelAllScheduledNotificationsAsync();
 
-  if (preferences == null) return;
+  if (preferences?.notificationTime == null) return;
 
   const eligible = computeEligibleSessionsToday(sessions);
   if (eligible.length === 0) return;

@@ -1,4 +1,5 @@
 import { useReviewNotificationsSync } from "@/hooks/use-review-notifications";
+import { useTimezoneSync } from "@/hooks/use-timezone-sync";
 import { configureNotificationHandler } from "@/lib/notifications";
 import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +19,11 @@ configureNotificationHandler();
 
 function ReviewNotificationsGate() {
   useReviewNotificationsSync();
+  return null;
+}
+
+function TimezoneSyncGate() {
+  useTimezoneSync();
   return null;
 }
 
@@ -90,7 +96,12 @@ export default function RootLayout() {
         config={tamaguiConfig}
         defaultTheme={colorScheme ?? "light"}
       >
-        {session && <ReviewNotificationsGate />}
+        {session && (
+          <>
+            <ReviewNotificationsGate />
+            <TimezoneSyncGate />
+          </>
+        )}
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen

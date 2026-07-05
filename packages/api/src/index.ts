@@ -5,6 +5,7 @@ import { sessionsRoutes } from "./routes/sessions.js";
 import { tradeEntriesRoutes } from "./routes/tradeEntries.js";
 import { statsRoutes } from "./routes/stats.js";
 import { userPreferencesRoutes } from "./routes/userPreferences.js";
+import { dailyReportsRoutes } from "./routes/dailyReports.js";
 
 const app = new Hono()
   .use(logger())
@@ -12,7 +13,8 @@ const app = new Hono()
   .route("/sessions", sessionsRoutes)
   .route("/trade-entries", tradeEntriesRoutes)
   .route("/stats", statsRoutes)
-  .route("/user-preferences", userPreferencesRoutes);
+  .route("/user-preferences", userPreferencesRoutes)
+  .route("/reports", dailyReportsRoutes);
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {

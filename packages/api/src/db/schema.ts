@@ -1,4 +1,16 @@
-import { numeric, pgEnum, pgTable, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  date,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  time,
+  timestamp,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
@@ -15,10 +27,14 @@ export const sessions = pgTable("sessions", {
 
 export const userPreferences = pgTable("user_preferences", {
   userId: uuid("user_id").primaryKey(),
-  notificationTime: time("notification_time").notNull(),
+  notificationTime: time("notification_time"),
+  timezone: text("timezone").notNull().default("UTC"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export type ImprovementPoint = { pattern: string; description: string; action: string };
+export type StrengthPoint = { pattern: string; description: string; whyItMatters: string };
 
 export const tradeEntries = pgTable("trade_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -34,6 +50,22 @@ export const tradeEntries = pgTable("trade_entries", {
   comment: text("comment"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const dailyReports = pgTable(
+  "daily_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    reportDate: date("report_date").notNull(),
+    historicRatio: numeric("historic_ratio", { precision: 5, scale: 4 }),
+    weekRatio: numeric("week_ratio", { precision: 5, scale: 4 }),
+    openCount: integer("open_count").notNull(),
+    improvements: jsonb("improvements").$type<ImprovementPoint[]>().notNull().default([]),
+    strengths: jsonb("strengths").$type<StrengthPoint[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [unique("daily_reports_user_id_report_date_unique").on(table.userId, table.reportDate)],
+);
 
 export const sessionsRelations = relations(sessions, ({ many }) => ({
   tradeEntries: many(tradeEntries),
