@@ -1,7 +1,6 @@
 import { api, uploadTradeEntryComment, type Stats, type TradeEntry } from "@/lib/api";
-import { type Direction, type Result } from "@/lib/decision";
+import { pendingDecisionFromStats, type Direction, type Result } from "@/lib/decision";
 import { queryKeys } from "@/lib/query-client";
-import { decisionFromRatio, ratioFromCounts } from "@galton/api/lib/successRatio";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseResponse } from "hono/client";
 
@@ -36,13 +35,8 @@ export function useCreateTradeEntry(sessionId: string) {
       const key = queryKeys.tradeEntries(sessionId);
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<TradeEntry[]>(key);
-      // Mirrors the server's scope: computeDecision on the API is computed over
-      // all of the user's closed entries across every session, not just this one.
       const stats = queryClient.getQueryData<Stats>(queryKeys.stats);
-      const ratio = stats
-        ? ratioFromCounts({ profit: stats.profit, loss: stats.loss, breakeven: stats.breakeven })
-        : null;
-      const decision = decisionFromRatio(ratio);
+      const { ratio, decision } = pendingDecisionFromStats(stats);
       const optimisticEntry: TradeEntry = {
         id: `temp-${Date.now()}-${tempIdSeq++}`,
         sessionId,
@@ -50,7 +44,7 @@ export function useCreateTradeEntry(sessionId: string) {
         result: "open",
         direction: null,
         r: "",
-        successRatio: ratio === null ? "0.0000" : ratio.toFixed(4),
+        successRatio: ratio.toFixed(4),
         entryAt: null,
         comment: null,
         createdAt: new Date().toISOString(),

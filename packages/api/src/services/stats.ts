@@ -1,15 +1,9 @@
-import { eq } from "drizzle-orm";
-import { db } from "../db/index.js";
-import { sessions, tradeEntries } from "../db/schema.js";
 import { computeRatio } from "../lib/successRatio.js";
+import { tradeEntriesForUser } from "./tradeEntries.js";
 
 export const statsService = {
   get: async (userId: string) => {
-    const allEntries = await db
-      .select({ result: tradeEntries.result, entryAt: tradeEntries.entryAt })
-      .from(tradeEntries)
-      .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
-      .where(eq(sessions.userId, userId));
+    const allEntries = await tradeEntriesForUser(userId);
 
     let profit = 0;
     let loss = 0;

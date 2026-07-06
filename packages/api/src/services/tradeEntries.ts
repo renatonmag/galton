@@ -1,16 +1,28 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
 import { computeDecision as computeRatioDecision } from "../lib/successRatio.js";
 
+export async function tradeEntriesForUser(userId: string) {
+  return db
+    .select({
+      result: tradeEntries.result,
+      comment: tradeEntries.comment,
+      decision: tradeEntries.decision,
+      direction: tradeEntries.direction,
+      r: tradeEntries.r,
+      entryAt: tradeEntries.entryAt,
+      openedAt: sessions.openedAt,
+    })
+    .from(tradeEntries)
+    .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
+    .where(eq(sessions.userId, userId));
+}
+
 async function computeDecision(
   userId: string,
 ): Promise<{ ratio: string; decision: "TRADE" | "NO_TRADE" }> {
-  const allEntries = await db
-    .select({ result: tradeEntries.result })
-    .from(tradeEntries)
-    .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
-    .where(and(eq(sessions.userId, userId), ne(tradeEntries.result, "open")));
+  const allEntries = await tradeEntriesForUser(userId);
 
   const { ratio, decision } = computeRatioDecision(allEntries);
   return { ratio: ratio === null ? "0.0000" : ratio.toFixed(4), decision };

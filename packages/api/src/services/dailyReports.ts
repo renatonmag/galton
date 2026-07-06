@@ -4,20 +4,14 @@ import { and, eq } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { dailyReports, sessions, tradeEntries } from "../db/schema.js";
+import { dailyReports } from "../db/schema.js";
 import { computeRatio } from "../lib/successRatio.js";
+import { tradeEntriesForUser } from "./tradeEntries.js";
 import { userPreferencesService } from "./userPreferences.js";
 
 const WINDOW_DAYS = 7;
 
-type EntryRow = {
-  result: "open" | "profit" | "loss" | "breakeven";
-  comment: string | null;
-  decision: "TRADE" | "NO_TRADE";
-  direction: "buy" | "sell" | null;
-  r: string;
-  openedAt: Date;
-};
+type EntryRow = Awaited<ReturnType<typeof tradeEntriesForUser>>[number];
 
 export function windowBoundaries(reportDate: string, timezone: string) {
   const windowEnd = DateTime.fromISO(reportDate, { zone: timezone }).startOf("day");
@@ -90,18 +84,7 @@ export const dailyReportsService = {
     const timezone = preferences?.timezone ?? "UTC";
     const { windowStart, windowEnd } = windowBoundaries(reportDate, timezone);
 
-    const allEntries: EntryRow[] = await db
-      .select({
-        result: tradeEntries.result,
-        comment: tradeEntries.comment,
-        decision: tradeEntries.decision,
-        direction: tradeEntries.direction,
-        r: tradeEntries.r,
-        openedAt: sessions.openedAt,
-      })
-      .from(tradeEntries)
-      .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
-      .where(eq(sessions.userId, userId));
+    const allEntries = await tradeEntriesForUser(userId);
 
     const windowEntries = allEntries.filter((e) => {
       const openedAt = DateTime.fromJSDate(e.openedAt);
@@ -163,15 +146,7 @@ export const dailyReportsService = {
     const timezone = preferences?.timezone ?? "UTC";
     const today = DateTime.now().setZone(timezone).startOf("day");
 
-    const entries = await db
-      .select({
-        result: tradeEntries.result,
-        comment: tradeEntries.comment,
-        openedAt: sessions.openedAt,
-      })
-      .from(tradeEntries)
-      .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
-      .where(eq(sessions.userId, userId));
+    const entries = await tradeEntriesForUser(userId);
 
     const signalDates = new Set<string>();
     for (const e of entries) {

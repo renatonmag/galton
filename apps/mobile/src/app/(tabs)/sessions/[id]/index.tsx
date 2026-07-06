@@ -1,5 +1,5 @@
+import { AddTradeSheet } from "@/components/add-trade-sheet";
 import {
-  useCreateTradeEntry,
   useDeleteTradeEntry,
   useTradeEntries,
 } from "@/hooks/queries/use-trade-entries";
@@ -12,11 +12,7 @@ import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { type TradeEntry } from "@/lib/api";
 import { computeLocalDecision } from "@/lib/decision";
-import {
-  decisionFromRatio,
-  ratioFromCounts,
-  TRADE_THRESHOLD,
-} from "@galton/api/lib/successRatio";
+import { TRADE_THRESHOLD } from "@galton/api/lib/successRatio";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowDown,
@@ -25,13 +21,12 @@ import {
   ChevronLeft,
   Clipboard,
   ClipboardCheck,
-  Plus,
   SquarePen,
   Trash,
   X,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, Modal, ScrollView } from "react-native";
+import { ActivityIndicator, Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Text, XStack, YStack } from "tamagui";
 
@@ -147,18 +142,11 @@ export default function SessionScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [editMode, setEditMode] = useState(false);
 
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [pendingDecision, setPendingDecision] = useState<{
-    ratio: number;
-    decision: "TRADE" | "NO_TRADE";
-  } | null>(null);
-
   const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
   const { data: stats } = useStats();
   const { data: sessions } = useSessions();
   const session = sessions?.find((s) => s.id === id);
   useRefreshOnFocus(refetch);
-  const createTradeEntry = useCreateTradeEntry(id);
   const deleteTradeEntry = useDeleteTradeEntry(id);
   const markReviewed = useMarkSessionReviewed();
   const reopenReview = useReopenSessionReview();
@@ -176,21 +164,6 @@ export default function SessionScreen() {
       ]);
     }
   }, [session?.reviewedAt, id, markReviewed, reopenReview]);
-
-  const openAddSheet = useCallback(() => {
-    // Mirrors the server's scope: the decision is computed over all of the
-    // user's closed entries across every session, not just this one.
-    const ratio = stats
-      ? ratioFromCounts({ profit: stats.profit, loss: stats.loss, breakeven: stats.breakeven })
-      : null;
-    setPendingDecision({ ratio: ratio ?? 0, decision: decisionFromRatio(ratio) });
-    setSheetVisible(true);
-  }, [stats]);
-
-  const saveNewTrade = useCallback(() => {
-    createTradeEntry.mutate();
-    setSheetVisible(false);
-  }, [createTradeEntry]);
 
   const deleteEntry = useCallback(
     (entryId: string) => {
@@ -295,97 +268,7 @@ export default function SessionScreen() {
         </YStack>
       </SafeAreaView>
 
-      <YStack
-        position="absolute"
-        bottom={32}
-        right={24}
-        width={64}
-        height={64}
-        borderRadius={32}
-        backgroundColor="$blue8"
-        alignItems="center"
-        justifyContent="center"
-        pressStyle={{ opacity: 0.8 }}
-        onPress={openAddSheet}
-      >
-        <Plus color="#fff" size={28} />
-      </YStack>
-
-      <Modal
-        visible={sheetVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSheetVisible(false)}
-      >
-        <YStack
-          flex={1}
-          backgroundColor="rgba(0,0,0,0.4)"
-          onPress={() => setSheetVisible(false)}
-        />
-        <YStack
-          backgroundColor="#fff"
-          borderTopLeftRadius={20}
-          borderTopRightRadius={20}
-          px="$5"
-          pt="$5"
-          pb="$10"
-        >
-          {pendingDecision && (
-            <DecisionStep
-              decision={pendingDecision.decision}
-              ratio={pendingDecision.ratio}
-              onPress={saveNewTrade}
-            />
-          )}
-        </YStack>
-      </Modal>
-    </YStack>
-  );
-}
-
-function DecisionStep({
-  decision,
-  ratio,
-  onPress,
-}: {
-  decision: "TRADE" | "NO_TRADE";
-  ratio: number;
-  onPress: () => void;
-}) {
-  const isTrade = decision === "TRADE";
-  const bg = isTrade ? "#C6F6D5" : "#FED7D7";
-  const color = isTrade ? "#276749" : "#9B2C2C";
-  const pct = `${Math.round(ratio * 100)}%`;
-
-  return (
-    <YStack gap="$3">
-      <XStack
-        borderRadius={16}
-        px="$5"
-        py="$5"
-        backgroundColor={bg}
-        alignItems="center"
-        justifyContent="space-between"
-        pressStyle={{ opacity: 0.85 }}
-        onPress={onPress}
-      >
-        <XStack alignItems="center" gap="$2.5">
-          {isTrade ? (
-            <Check color={color} size={22} />
-          ) : (
-            <X color={color} size={22} />
-          )}
-          <Text fontSize={22} fontWeight="800" color={color}>
-            {isTrade ? "TRADE" : "NO TRADE"}
-          </Text>
-        </XStack>
-        <Text fontSize={28} fontWeight="800" color={color}>
-          {pct}
-        </Text>
-      </XStack>
-      <Text textAlign="center" color="$color8" fontSize="$3">
-        Tap to add
-      </Text>
+      <AddTradeSheet sessionId={id} />
     </YStack>
   );
 }
