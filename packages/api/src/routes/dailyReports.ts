@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { DateTime } from "luxon";
 import { authMiddleware, type AppEnv } from "../middleware/auth.js";
-import { dailyReportsService } from "../services/dailyReports.js";
+import { dailyReportsService, windowBoundaries } from "../services/dailyReports.js";
 import { userPreferencesService } from "../services/userPreferences.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -28,7 +28,8 @@ const app = new Hono<AppEnv>()
     }
 
     const report = await dailyReportsService.getOrGenerate(userId, date);
-    return c.json({ report });
+    const { windowStart } = windowBoundaries(date, timezone);
+    return c.json({ report, windowStart: windowStart.toISODate() });
   });
 
 export const dailyReportsRoutes = app;

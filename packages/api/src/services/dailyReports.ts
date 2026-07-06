@@ -19,10 +19,16 @@ type EntryRow = {
   openedAt: Date;
 };
 
-function windowBoundaries(reportDate: string, timezone: string) {
+export function windowBoundaries(reportDate: string, timezone: string) {
   const windowEnd = DateTime.fromISO(reportDate, { zone: timezone }).startOf("day");
   const windowStart = windowEnd.minus({ days: WINDOW_DAYS });
   return { windowStart, windowEnd };
+}
+
+export function rollForwardPastWeekend(date: DateTime): DateTime {
+  if (date.weekday === 6) return date.plus({ days: 2 }); // Saturday -> Monday
+  if (date.weekday === 7) return date.plus({ days: 1 }); // Sunday -> Monday
+  return date;
 }
 
 const dailyReportSchema = z.object({
@@ -180,7 +186,7 @@ export const dailyReportsService = {
     for (const signalDateStr of signalDates) {
       const signalDate = DateTime.fromISO(signalDateStr, { zone: timezone });
       for (let offset = 1; offset <= WINDOW_DAYS; offset++) {
-        const candidate = signalDate.plus({ days: offset });
+        const candidate = rollForwardPastWeekend(signalDate.plus({ days: offset }));
         if (candidate > today) continue;
         const iso = candidate.toISODate();
         if (iso) qualifyingDates.add(iso);

@@ -68,7 +68,9 @@ function PointCard({
 export default function ReportDetailScreen() {
   const router = useRouter();
   const { date } = useLocalSearchParams<{ date: string }>();
-  const { data: report, isLoading, isError, refetch } = useDailyReport(date);
+  const { data, isLoading, isError, refetch } = useDailyReport(date);
+  const report = data?.report;
+  const windowStart = data?.windowStart;
 
   return (
     <YStack flex={1} backgroundColor="#fff">
@@ -86,9 +88,16 @@ export default function ReportDetailScreen() {
           >
             <ChevronLeft color="#fff" size={22} />
           </YStack>
-          <Text fontSize={20} fontWeight="700" color="$blue12">
-            {formatReportDate(date)}
-          </Text>
+          <YStack>
+            <Text fontSize={20} fontWeight="700" color="$blue12">
+              {formatReportDate(date)}
+            </Text>
+            {windowStart && (
+              <Text fontSize={13} color="$color10">
+                Accounting since {formatReportDate(windowStart)}
+              </Text>
+            )}
+          </YStack>
         </XStack>
 
         {isLoading ? (

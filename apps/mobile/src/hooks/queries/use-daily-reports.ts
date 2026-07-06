@@ -17,8 +17,7 @@ export function useDailyReport(date: string) {
   return useQuery({
     queryKey: queryKeys.dailyReport(date),
     queryFn: async () => {
-      const { report } = await parseResponse(api.reports[":date"].$get({ param: { date } }));
-      return report;
+      return parseResponse(api.reports[":date"].$get({ param: { date } }));
     },
   });
 }
