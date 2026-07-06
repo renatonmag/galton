@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/devtools": "^1.0.0",
+    "@ai-sdk/groq": "^4.0.5",
     "@ai-sdk/openai": "^4.0.3",
     "@supabase/supabase-js": "^2.50.0",
     "ai": "^7.0.2",
