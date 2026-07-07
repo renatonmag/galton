@@ -14,6 +14,8 @@ import { useColorScheme } from "react-native";
 import { TamaguiProvider } from "tamagui";
 import { tamaguiConfig } from "../../tamagui.config";
 
+import '../global.css';
+
 SplashScreen.preventAutoHideAsync();
 configureNotificationHandler();
 
