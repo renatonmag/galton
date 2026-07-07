@@ -1,9 +1,11 @@
+import { useExtractBehaviorInsights } from "@/hooks/queries/use-behavior-insights";
 import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { Settings } from "lucide-react-native";
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useCallback } from "react";
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
@@ -11,6 +13,45 @@ export default function HomeScreen() {
   const router = useRouter();
   const { data: stats, isLoading, isError, refetch } = useStats();
   useRefreshOnFocus(refetch);
+
+  const extractInsights = useExtractBehaviorInsights();
+
+  const handleAnalyzePatterns = useCallback(async () => {
+    try {
+      const result = await extractInsights.mutateAsync();
+
+      if (result.skipped) {
+        if (result.reason === "already_extracted") {
+          Alert.alert(
+            "Padrões já analisados",
+            "Você já tem padrões de comportamento identificados.",
+          );
+        } else {
+          Alert.alert(
+            "Sem comentários suficientes",
+            "Adicione comentários aos seus trades para analisar padrões de comportamento.",
+          );
+        }
+        return;
+      }
+
+      if (result.noticedNothing) {
+        Alert.alert(
+          "Nenhum padrão identificado",
+          "Não encontramos padrões repetitivos nos seus comentários ainda.",
+        );
+        return;
+      }
+
+      const count = result.insights.length;
+      Alert.alert(
+        "Padrões identificados",
+        `${count} novo${count > 1 ? "s" : ""} padrão${count > 1 ? "ões" : ""} de comportamento identificado${count > 1 ? "s" : ""}.`,
+      );
+    } catch {
+      Alert.alert("Erro", "Não foi possível analisar os padrões agora. Tente novamente.");
+    }
+  }, [extractInsights]);
 
   const ratio =
     stats?.successRatio != null
@@ -54,6 +95,19 @@ export default function HomeScreen() {
             <BreakdownItem label="Open" value={stats.open} color={BLUE} />
           </View>
         )}
+
+        <TouchableOpacity
+          style={styles.analyzeButton}
+          onPress={handleAnalyzePatterns}
+          disabled={extractInsights.isPending}
+          hitSlop={8}
+        >
+          {extractInsights.isPending ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.analyzeButtonText}>Analisar padrões</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -152,5 +206,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#888",
     fontWeight: "500",
+  },
+  analyzeButton: {
+    marginTop: 20,
+    backgroundColor: BLUE,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  analyzeButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

@@ -7,6 +7,7 @@ import { voiceNotesRoutes } from "./routes/voiceNotes.js";
 import { statsRoutes } from "./routes/stats.js";
 import { userPreferencesRoutes } from "./routes/userPreferences.js";
 import { dailyReportsRoutes } from "./routes/dailyReports.js";
+import { behaviorInsightsRoutes } from "./routes/behaviorInsights.js";
 
 const app = new Hono()
   .use(logger())
@@ -16,7 +17,8 @@ const app = new Hono()
   .route("/voice-notes", voiceNotesRoutes)
   .route("/stats", statsRoutes)
   .route("/user-preferences", userPreferencesRoutes)
-  .route("/reports", dailyReportsRoutes);
+  .route("/reports", dailyReportsRoutes)
+  .route("/behavior-insights", behaviorInsightsRoutes);
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
