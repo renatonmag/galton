@@ -3,6 +3,7 @@ import { useTimezoneSync } from "@/hooks/use-timezone-sync";
 import { configureNotificationHandler } from "@/lib/notifications";
 import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
+import { PortalHost } from '@rn-primitives/portal';
 import { Session } from "@supabase/supabase-js";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
@@ -112,6 +113,7 @@ export default function RootLayout() {
           />
         </Stack>
         <StatusBar style="auto" />
+        <PortalHost />
       </TamaguiProvider>
     </QueryClientProvider>
   );
