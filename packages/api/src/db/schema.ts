@@ -51,6 +51,16 @@ export const tradeEntries = pgTable("trade_entries", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const voiceNotes = pgTable("voice_notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => sessions.id, { onDelete: "cascade" }),
+  tradeEntryId: uuid("trade_entry_id").references(() => tradeEntries.id, { onDelete: "set null" }),
+  transcript: text("transcript").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const dailyReports = pgTable(
   "daily_reports",
   {
@@ -69,8 +79,14 @@ export const dailyReports = pgTable(
 
 export const sessionsRelations = relations(sessions, ({ many }) => ({
   tradeEntries: many(tradeEntries),
+  voiceNotes: many(voiceNotes),
 }));
 
 export const tradeEntriesRelations = relations(tradeEntries, ({ one }) => ({
   session: one(sessions, { fields: [tradeEntries.sessionId], references: [sessions.id] }),
+}));
+
+export const voiceNotesRelations = relations(voiceNotes, ({ one }) => ({
+  session: one(sessions, { fields: [voiceNotes.sessionId], references: [sessions.id] }),
+  tradeEntry: one(tradeEntries, { fields: [voiceNotes.tradeEntryId], references: [tradeEntries.id] }),
 }));

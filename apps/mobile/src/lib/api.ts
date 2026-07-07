@@ -42,6 +42,10 @@ export type DailyReport = InferResponseType<
   (typeof api.reports)[":date"]["$get"],
   200
 >["report"];
+export type VoiceNote = InferResponseType<
+  (typeof api.sessions)[":sessionId"]["voice-notes"]["$get"],
+  200
+>["voiceNotes"][number];
 
 export async function uploadTradeEntryComment(
   tradeEntryId: string,
@@ -74,6 +78,51 @@ export async function uploadTradeEntryComment(
         }
       } else {
         reject(new Error(`Transcription failed: ${xhr.status}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.send(formData);
+  });
+}
+
+export async function uploadVoiceNote(
+  sessionId: string,
+  audioUri: string,
+  mimeType: string,
+): Promise<{ voiceNote: VoiceNote }> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("audio", {
+      uri: audioUri,
+      name: "recording.m4a",
+      type: mimeType,
+    } as unknown as Blob);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${BASE_URL}/sessions/${sessionId}/voice-notes`);
+    if (session?.access_token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          reject(new Error("Invalid server response"));
+        }
+      } else {
+        let message = `Transcription failed: ${xhr.status}`;
+        try {
+          const body = JSON.parse(xhr.responseText);
+          if (body?.error) message = body.error;
+        } catch {
+          // ignore, fall back to generic message
+        }
+        reject(new Error(message));
       }
     };
     xhr.onerror = () => reject(new Error("Network error"));

@@ -27,6 +27,7 @@ export const queryClient = new QueryClient({
 export const queryKeys = {
   sessions: ["sessions"] as const,
   tradeEntries: (sessionId: string) => ["sessions", sessionId, "trade-entries"] as const,
+  voiceNotes: (sessionId: string) => ["sessions", sessionId, "voice-notes"] as const,
   stats: ["stats"] as const,
   userPreferences: ["user-preferences"] as const,
   dailyReports: ["daily-reports"] as const,

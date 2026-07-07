@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { sessionsRoutes } from "./routes/sessions.js";
 import { tradeEntriesRoutes } from "./routes/tradeEntries.js";
+import { voiceNotesRoutes } from "./routes/voiceNotes.js";
 import { statsRoutes } from "./routes/stats.js";
 import { userPreferencesRoutes } from "./routes/userPreferences.js";
 import { dailyReportsRoutes } from "./routes/dailyReports.js";
@@ -12,6 +13,7 @@ const app = new Hono()
   .get("/", (c) => c.text("Galton API"))
   .route("/sessions", sessionsRoutes)
   .route("/trade-entries", tradeEntriesRoutes)
+  .route("/voice-notes", voiceNotesRoutes)
   .route("/stats", statsRoutes)
   .route("/user-preferences", userPreferencesRoutes)
   .route("/reports", dailyReportsRoutes);

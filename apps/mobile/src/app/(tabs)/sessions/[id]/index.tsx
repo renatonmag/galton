@@ -1,4 +1,4 @@
-import { AddTradeSheet } from "@/components/add-trade-sheet";
+import { AddSessionItemFab } from "@/components/add-session-item-fab";
 import {
   useDeleteTradeEntry,
   useTradeEntries,
@@ -8,9 +8,10 @@ import {
   useReopenSessionReview,
   useSessions,
 } from "@/hooks/queries/use-sessions";
+import { useDeleteVoiceNote, useVoiceNotes } from "@/hooks/queries/use-voice-notes";
 import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
-import { type TradeEntry } from "@/lib/api";
+import { type TradeEntry, type VoiceNote } from "@/lib/api";
 import { computeLocalDecision } from "@/lib/decision";
 import { TRADE_THRESHOLD } from "@galton/api/lib/successRatio";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,6 +22,7 @@ import {
   ChevronLeft,
   Clipboard,
   ClipboardCheck,
+  StickyNote,
   SquarePen,
   Trash,
   X,
@@ -120,6 +122,37 @@ function TradeCard({
   );
 }
 
+function VoiceNoteCard({
+  note,
+  editMode,
+  onDelete,
+}: {
+  note: VoiceNote;
+  editMode: boolean;
+  onDelete: () => void;
+}) {
+  return (
+    <YStack backgroundColor="#F1F1F1" borderRadius={12} px="$4" py="$3.5">
+      <XStack alignItems="flex-start" justifyContent="space-between" gap="$2.5">
+        <XStack flex={1} alignItems="flex-start" gap="$2">
+          <StickyNote color="#718096" size={16} style={{ marginTop: 2 }} />
+          <Text flex={1} fontSize="$3.5" color="$color12">
+            {note.transcript}
+          </Text>
+        </XStack>
+        {editMode && (
+          <Button chromeless p="$1" onPress={onDelete}>
+            <Trash color="#E57373" size={18} />
+          </Button>
+        )}
+      </XStack>
+      <Text fontSize={11} color="$color8" mt="$1.5">
+        {fmtTime(note.createdAt)}
+      </Text>
+    </YStack>
+  );
+}
+
 function HeaderStat({ label, ratio }: { label: string; ratio: number }) {
   return (
     <XStack alignItems="baseline" gap="$1">
@@ -143,13 +176,20 @@ export default function SessionScreen() {
   const [editMode, setEditMode] = useState(false);
 
   const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
+  const { data: voiceNotes = [] } = useVoiceNotes(id);
   const { data: stats } = useStats();
   const { data: sessions } = useSessions();
   const session = sessions?.find((s) => s.id === id);
   useRefreshOnFocus(refetch);
   const deleteTradeEntry = useDeleteTradeEntry(id);
+  const deleteVoiceNote = useDeleteVoiceNote(id);
   const markReviewed = useMarkSessionReviewed();
   const reopenReview = useReopenSessionReview();
+
+  const timeline = [
+    ...entries.map((entry) => ({ kind: "trade" as const, createdAt: entry.createdAt, entry })),
+    ...voiceNotes.map((note) => ({ kind: "note" as const, createdAt: note.createdAt, note })),
+  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   const toggleReview = useCallback(() => {
     if (session?.reviewedAt) {
@@ -177,6 +217,20 @@ export default function SessionScreen() {
       ]);
     },
     [deleteTradeEntry],
+  );
+
+  const deleteNote = useCallback(
+    (noteId: string) => {
+      Alert.alert("Delete note", "Delete this voice note?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteVoiceNote.mutate(noteId),
+        },
+      ]);
+    },
+    [deleteVoiceNote],
   );
 
   return (
@@ -249,26 +303,35 @@ export default function SessionScreen() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ gap: 10, paddingBottom: 96 }}
             >
-              {entries.map((entry) => (
-                <TradeCard
-                  key={entry.id}
-                  entry={entry}
-                  editMode={editMode}
-                  onDelete={() => deleteEntry(entry.id)}
-                  onTap={() =>
-                    router.push({
-                      pathname: "/(tabs)/sessions/[id]/edit",
-                      params: { id, entryId: entry.id },
-                    })
-                  }
-                />
-              ))}
+              {timeline.map((item) =>
+                item.kind === "trade" ? (
+                  <TradeCard
+                    key={item.entry.id}
+                    entry={item.entry}
+                    editMode={editMode}
+                    onDelete={() => deleteEntry(item.entry.id)}
+                    onTap={() =>
+                      router.push({
+                        pathname: "/(tabs)/sessions/[id]/edit",
+                        params: { id, entryId: item.entry.id },
+                      })
+                    }
+                  />
+                ) : (
+                  <VoiceNoteCard
+                    key={item.note.id}
+                    note={item.note}
+                    editMode={editMode}
+                    onDelete={() => deleteNote(item.note.id)}
+                  />
+                ),
+              )}
             </ScrollView>
           )}
         </YStack>
       </SafeAreaView>
 
-      <AddTradeSheet sessionId={id} />
+      <AddSessionItemFab sessionId={id} />
     </YStack>
   );
 }
