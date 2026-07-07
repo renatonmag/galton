@@ -1,5 +1,7 @@
 import { useCreateSession, useDeleteSession, useSessions } from "@/hooks/queries/use-sessions";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
+import { Button as ShadcnButton } from "@/components/ui/button";
+import { Text as ShadcnText } from "@/components/ui/text";
 import { useRouter } from "expo-router";
 import { FileText, SquarePen, Trash } from "lucide-react-native";
 import { useState } from "react";
@@ -97,15 +99,13 @@ export default function SessionsScreen() {
       </YStack>
 
       <YStack px="$5" pb="$3">
-        <Button
-          theme="blue"
-          size="$5"
-          borderRadius={12}
+        <ShadcnButton
+          variant="default"
           disabled={createSession.isPending}
           onPress={() => createSession.mutate()}
         >
-          New session
-        </Button>
+          <ShadcnText>New session</ShadcnText>
+        </ShadcnButton>
       </YStack>
     </SafeAreaView>
   );
