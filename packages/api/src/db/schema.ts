@@ -16,6 +16,7 @@ import { relations } from "drizzle-orm";
 export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
 export const resultEnum = pgEnum("result", ["open", "profit", "loss", "breakeven"]);
 export const directionEnum = pgEnum("direction", ["buy", "sell"]);
+export const behaviorInsightStatusEnum = pgEnum("behavior_insight_status", ["active", "dismissed"]);
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -76,6 +77,16 @@ export const dailyReports = pgTable(
   },
   (table) => [unique("daily_reports_user_id_report_date_unique").on(table.userId, table.reportDate)],
 );
+
+export const behaviorInsights = pgTable("behavior_insights", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  text: text("text").notNull(),
+  evidenceCount: integer("evidence_count").notNull().default(0),
+  firstSeen: timestamp("first_seen", { withTimezone: true }).defaultNow().notNull(),
+  lastSeen: timestamp("last_seen", { withTimezone: true }).defaultNow().notNull(),
+  status: behaviorInsightStatusEnum("status").notNull().default("active"),
+});
 
 export const sessionsRelations = relations(sessions, ({ many }) => ({
   tradeEntries: many(tradeEntries),
