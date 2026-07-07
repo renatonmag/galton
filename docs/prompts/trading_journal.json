@@ -1,0 +1,37 @@
+[
+  {
+    "behavior": "Entering trades late due to hesitation, resulting in worse stops and risk-reward",
+    "evidence_quote": "Entrei num trade que eu já deveria ter entrado duas barras antes e muitos pontos abaixo.",
+    "evidence_count": 5
+  },
+  {
+    "behavior": "Placing stops too tight (at or below the technical stop), getting knocked out of trades that then worked",
+    "evidence_quote": "eu coloquei o stop abaixo do stop técnico e foi justamente por isso que eu saí. Saiu do stop e eu não entrei de novo e ele caiu mais um tanto. Se o stop tivesse 50 pontos acima não teria pegado e eu teria surfado uma operação boa.",
+    "evidence_count": 2
+  },
+  {
+    "behavior": "Accurate price action and bar structure reading (signal bars, special bars, two-bar reversals, mean-reversion setups)",
+    "evidence_quote": "uma barra especial, porque foi a melhor barra de baixa, foi a melhor barra de alta, aliás, das últimas 12 barras, região da média",
+    "evidence_count": 8
+  },
+  {
+    "behavior": "Emotions driving decisions, leading to passivity at the point of entry",
+    "evidence_quote": "Eu deixei que as emoções me controlassem e para não sentir nada, para não sentir nenhuma emoção mais forte, eu fiquei passivo perante a entrada",
+    "evidence_count": 2
+  },
+  {
+    "behavior": "Failing to re-enter after being stopped out, missing the subsequent valid signal",
+    "evidence_quote": "Saiu do stop e eu não entrei de novo e ele caiu mais um tanto.",
+    "evidence_count": 2
+  },
+  {
+    "behavior": "Break-even exits on climactic or exhaustion moves that immediately reversed",
+    "evidence_quote": "eu entrei nessa grande barra, uma enorme barra, bem climática, e saiu no break even. Foi um movimento exaustivo.",
+    "evidence_count": 3
+  },
+  {
+    "behavior": "Recognizing the opposite (reverse) setup was better but not taking it",
+    "evidence_quote": "eu poderia ter entrado de forma contrária, porque deu um sinal bom, contrário, com duas barras de confirmação, numa região de resistência.",
+    "evidence_count": 2
+  }
+]
