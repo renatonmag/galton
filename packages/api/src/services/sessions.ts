@@ -1,6 +1,8 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
+
+type Executor = Pick<typeof db, "update">;
 
 export const sessionsService = {
   list: async (userId: string) => {
@@ -55,5 +57,30 @@ export const sessionsService = {
       .where(and(eq(sessions.id, id), eq(sessions.userId, userId)))
       .returning();
     return rows[0];
+  },
+
+  listEligibleForAnalysis: async (userId: string) => {
+    return db
+      .select({ id: sessions.id, openedAt: sessions.openedAt })
+      .from(sessions)
+      .innerJoin(tradeEntries, eq(tradeEntries.sessionId, sessions.id))
+      .where(
+        and(
+          eq(sessions.userId, userId),
+          isNull(sessions.commentsProcessed),
+          sql`length(trim(coalesce(${tradeEntries.comment}, ''))) > 0`,
+        ),
+      )
+      .groupBy(sessions.id)
+      .orderBy(asc(sessions.openedAt));
+  },
+
+  stampCommentsProcessed: async (sessionIds: string[], executor: Executor = db) => {
+    if (sessionIds.length === 0) return [];
+    return executor
+      .update(sessions)
+      .set({ commentsProcessed: new Date() })
+      .where(inArray(sessions.id, sessionIds))
+      .returning();
   },
 };

@@ -1,4 +1,8 @@
-import { useExtractBehaviorInsights } from "@/hooks/queries/use-behavior-insights";
+import {
+  useExtractBehaviorInsights,
+  usePendingBehaviorInsightsCount,
+  useReinforceBehaviorInsights,
+} from "@/hooks/queries/use-behavior-insights";
 import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import { supabase } from "@/lib/supabase";
@@ -12,9 +16,12 @@ import { Text } from "tamagui";
 export default function HomeScreen() {
   const router = useRouter();
   const { data: stats, isLoading, isError, refetch } = useStats();
+  const { data: pendingCount, refetch: refetchPendingCount } = usePendingBehaviorInsightsCount();
   useRefreshOnFocus(refetch);
+  useRefreshOnFocus(refetchPendingCount);
 
   const extractInsights = useExtractBehaviorInsights();
+  const reinforceInsights = useReinforceBehaviorInsights();
 
   const handleAnalyzePatterns = useCallback(async () => {
     try {
@@ -52,6 +59,37 @@ export default function HomeScreen() {
       Alert.alert("Erro", "Não foi possível analisar os padrões agora. Tente novamente.");
     }
   }, [extractInsights]);
+
+  const handleAnalyzeDays = useCallback(async () => {
+    try {
+      const result = await reinforceInsights.mutateAsync();
+
+      if (result.skipped) {
+        Alert.alert(
+          "Nada para analisar",
+          result.reason === "not_bootstrapped"
+            ? "Analise seus padrões de comportamento primeiro."
+            : "Não há dias novos para analisar no momento.",
+        );
+        return;
+      }
+
+      if (result.error) {
+        Alert.alert(
+          "Análise parcial",
+          `${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} processado${result.sessionsProcessed === 1 ? "" : "s"} antes de um erro interromper a análise. Tente novamente mais tarde.`,
+        );
+        return;
+      }
+
+      Alert.alert(
+        "Dias analisados",
+        `${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} analisado${result.sessionsProcessed === 1 ? "" : "s"}, ${result.reinforcementsApplied} padrão${result.reinforcementsApplied === 1 ? "" : "ões"} reforçado${result.reinforcementsApplied === 1 ? "" : "s"}.`,
+      );
+    } catch {
+      Alert.alert("Erro", "Não foi possível analisar os dias agora. Tente novamente.");
+    }
+  }, [reinforceInsights]);
 
   const ratio =
     stats?.successRatio != null
@@ -106,6 +144,25 @@ export default function HomeScreen() {
             <ActivityIndicator color="#fff" size="small" />
           ) : (
             <Text style={styles.analyzeButtonText}>Analisar padrões</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.analyzeButton,
+            styles.reinforceButton,
+            (!pendingCount || reinforceInsights.isPending) && styles.analyzeButtonDisabled,
+          ]}
+          onPress={handleAnalyzeDays}
+          disabled={!pendingCount || reinforceInsights.isPending}
+          hitSlop={8}
+        >
+          {reinforceInsights.isPending ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.analyzeButtonText}>
+              Analisar {pendingCount ?? 0} dia{pendingCount === 1 ? "" : "s"}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -219,5 +276,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
+  },
+  reinforceButton: {
+    marginTop: 12,
+  },
+  analyzeButtonDisabled: {
+    opacity: 0.4,
   },
 });

@@ -1,16 +1,21 @@
 import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
-import { DateTime } from "luxon";
 import { z } from "zod";
+import { db } from "../db/index.js";
 import { behaviorInsightsService } from "./behaviorInsights.js";
-import { tradeEntriesForUser } from "./tradeEntries.js";
-import { userPreferencesService } from "./userPreferences.js";
+import { sessionsService } from "./sessions.js";
+import { tradeEntriesForSessions } from "./tradeEntries.js";
 
-const WINDOW_DAYS = 2;
+const WINDOW_SIZE = 2;
 
 const extractionSchema = z.object({
   reinforced: z.array(z.object({ insightId: z.string(), evidenceQuote: z.string() })),
   newInsights: z.array(z.object({ text: z.string(), evidenceQuote: z.string() })),
+  noticedNothing: z.boolean(),
+});
+
+const reinforcementSchema = z.object({
+  reinforced: z.array(z.object({ insightId: z.string(), evidenceQuote: z.string() })),
   noticedNothing: z.boolean(),
 });
 
@@ -34,8 +39,32 @@ Exemplos de padrões bem formulados:
 - Emoções guiando as decisões, levando à passividade no momento da entrada
 - Não reentrar após ser stopado, perdendo o sinal válido subsequente`;
 
+const REINFORCEMENT_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
+
+Você recebe uma lista de padrões de comportamento já identificados anteriormente para este trader (cada um com um ID) e um novo lote de comentários de trades.
+
+Sua tarefa é verificar, para cada padrão já identificado, se ele aparece novamente nos comentários abaixo — não invente padrões novos, não avalie nada que não esteja na lista fornecida.
+
+Regras:
+- Só inclua um padrão em "reinforced" se houver evidência clara dele nos comentários deste lote.
+- Para cada padrão reforçado, preencha "evidenceQuote" com uma citação (ou paráfrase muito próxima) do comentário que evidencia a recorrência.
+- Um mesmo padrão não deve aparecer mais de uma vez em "reinforced", mesmo que apareça em múltiplos comentários do lote.
+- Se nenhum dos padrões da lista aparecer nos comentários, defina "noticedNothing" como true e deixe "reinforced" vazio.`;
+
 function serializeComments(comments: string[]): string {
   return comments.map((text, i) => `Comentário ${i + 1}: "${text}"`).join("\n\n");
+}
+
+function serializeInsightCandidates(insights: { id: string; text: string }[]): string {
+  return insights.map((insight) => `ID ${insight.id}: ${insight.text}`).join("\n");
+}
+
+export function chunkIntoWindows<T>(items: T[], size: number): T[][] {
+  const windows: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    windows.push(items.slice(i, i + size));
+  }
+  return windows;
 }
 
 export type BehaviorInsightExtractionOutcome =
@@ -43,45 +72,123 @@ export type BehaviorInsightExtractionOutcome =
   | { skipped: true; reason: "no_comments" }
   | { skipped: false; created: Awaited<ReturnType<typeof behaviorInsightsService.create>> };
 
+export type BehaviorInsightReinforcementOutcome =
+  | { skipped: true; reason: "not_bootstrapped" }
+  | { skipped: true; reason: "nothing_pending" }
+  | {
+      skipped: false;
+      windowsProcessed: number;
+      sessionsProcessed: number;
+      reinforcementsApplied: number;
+      error?: { message: string; windowIndex: number };
+    };
+
+type EligibleSession = Awaited<ReturnType<typeof sessionsService.listEligibleForAnalysis>>[number];
+
+async function reinforceWindow(
+  userId: string,
+  windowSessions: EligibleSession[],
+): Promise<{ sessionsCount: number; reinforcedCount: number }> {
+  const sessionIds = windowSessions.map((s) => s.id);
+  const activeInsights = await behaviorInsightsService.listActive(userId);
+  const entries = await tradeEntriesForSessions(sessionIds);
+  const commented = entries.filter((e) => e.comment && e.comment.trim() !== "");
+
+  let reinforcedIds: string[] = [];
+  if (activeInsights.length > 0 && commented.length > 0) {
+    const { object } = await generateObject({
+      model: openai("gpt-5.4-mini"),
+      schema: reinforcementSchema,
+      system: REINFORCEMENT_SYSTEM_PROMPT,
+      prompt: `Padrões conhecidos:\n${serializeInsightCandidates(activeInsights)}\n\n${serializeComments(
+        commented.map((e) => e.comment as string),
+      )}`,
+    });
+    reinforcedIds = [...new Set(object.reinforced.map((r) => r.insightId))];
+  }
+
+  await db.transaction(async (tx) => {
+    if (reinforcedIds.length > 0) {
+      await behaviorInsightsService.update(reinforcedIds, tx);
+    }
+    await sessionsService.stampCommentsProcessed(sessionIds, tx);
+  });
+
+  return { sessionsCount: sessionIds.length, reinforcedCount: reinforcedIds.length };
+}
+
 export const behaviorInsightExtractionService = {
   extractForUser: async (userId: string): Promise<BehaviorInsightExtractionOutcome> => {
     if (await behaviorInsightsService.hasAny(userId)) {
       return { skipped: true, reason: "already_extracted" };
     }
 
-    const allEntries = await tradeEntriesForUser(userId);
-    const commented = allEntries.filter((e) => e.comment && e.comment.trim() !== "");
-    if (commented.length === 0) {
+    const eligible = await sessionsService.listEligibleForAnalysis(userId);
+    if (eligible.length === 0) {
       return { skipped: true, reason: "no_comments" };
     }
 
-    const preferences = await userPreferencesService.get(userId);
-    const timezone = preferences?.timezone ?? "UTC";
-
-    const earliestOpenedAtMs = Math.min(...commented.map((e) => e.openedAt.getTime()));
-    const windowStart = DateTime.fromMillis(earliestOpenedAtMs).setZone(timezone).startOf("day");
-    const windowEnd = windowStart.plus({ days: WINDOW_DAYS });
-
-    const windowEntries = commented.filter((e) => {
-      const openedAt = DateTime.fromJSDate(e.openedAt).setZone(timezone);
-      return openedAt >= windowStart && openedAt < windowEnd;
-    });
+    const sessionIds = eligible.slice(0, WINDOW_SIZE).map((s) => s.id);
+    const entries = await tradeEntriesForSessions(sessionIds);
+    const commented = entries.filter((e) => e.comment && e.comment.trim() !== "");
 
     const { object } = await generateObject({
       model: openai("gpt-5.4-mini"),
       schema: extractionSchema,
       system: SYSTEM_PROMPT,
-      prompt: serializeComments(windowEntries.map((e) => e.comment as string)),
+      prompt: serializeComments(commented.map((e) => e.comment as string)),
     });
 
-    if (object.newInsights.length === 0) {
-      return { skipped: false, created: [] };
+    const created =
+      object.newInsights.length > 0
+        ? await behaviorInsightsService.create(
+            userId,
+            object.newInsights.map((i) => i.text),
+          )
+        : [];
+
+    await sessionsService.stampCommentsProcessed(sessionIds);
+    return { skipped: false, created };
+  },
+
+  reinforceForUser: async (userId: string): Promise<BehaviorInsightReinforcementOutcome> => {
+    if (!(await behaviorInsightsService.hasAny(userId))) {
+      return { skipped: true, reason: "not_bootstrapped" };
     }
 
-    const created = await behaviorInsightsService.create(
-      userId,
-      object.newInsights.map((i) => i.text),
-    );
-    return { skipped: false, created };
+    const eligible = await sessionsService.listEligibleForAnalysis(userId);
+    if (eligible.length === 0) {
+      return { skipped: true, reason: "nothing_pending" };
+    }
+
+    const windows = chunkIntoWindows(eligible, WINDOW_SIZE);
+    let windowsProcessed = 0;
+    let sessionsProcessed = 0;
+    let reinforcementsApplied = 0;
+
+    for (let i = 0; i < windows.length; i++) {
+      try {
+        const result = await reinforceWindow(userId, windows[i]);
+        windowsProcessed += 1;
+        sessionsProcessed += result.sessionsCount;
+        reinforcementsApplied += result.reinforcedCount;
+      } catch (err) {
+        return {
+          skipped: false,
+          windowsProcessed,
+          sessionsProcessed,
+          reinforcementsApplied,
+          error: { message: err instanceof Error ? err.message : String(err), windowIndex: i },
+        };
+      }
+    }
+
+    return { skipped: false, windowsProcessed, sessionsProcessed, reinforcementsApplied };
+  },
+
+  pendingCount: async (userId: string): Promise<number> => {
+    if (!(await behaviorInsightsService.hasAny(userId))) return 0;
+    const eligible = await sessionsService.listEligibleForAnalysis(userId);
+    return eligible.length;
   },
 };

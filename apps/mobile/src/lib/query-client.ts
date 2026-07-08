@@ -32,4 +32,5 @@ export const queryKeys = {
   userPreferences: ["user-preferences"] as const,
   dailyReports: ["daily-reports"] as const,
   dailyReport: (date: string) => ["daily-reports", date] as const,
+  behaviorInsightsPendingCount: ["behavior-insights", "pending-count"] as const,
 };

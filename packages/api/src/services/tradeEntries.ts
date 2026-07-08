@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
 import { computeDecision as computeRatioDecision } from "../lib/successRatio.js";
@@ -17,6 +17,18 @@ export async function tradeEntriesForUser(userId: string) {
     .from(tradeEntries)
     .innerJoin(sessions, eq(tradeEntries.sessionId, sessions.id))
     .where(eq(sessions.userId, userId));
+}
+
+export async function tradeEntriesForSessions(sessionIds: string[]) {
+  if (sessionIds.length === 0) return [];
+  return db
+    .select({
+      id: tradeEntries.id,
+      sessionId: tradeEntries.sessionId,
+      comment: tradeEntries.comment,
+    })
+    .from(tradeEntries)
+    .where(inArray(tradeEntries.sessionId, sessionIds));
 }
 
 async function computeDecision(
