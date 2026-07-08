@@ -24,13 +24,13 @@ Sua tarefa é verificar, para cada padrão já identificado, se ele aparece nova
 
 Regras:
 - Só inclua um padrão em "reinforced" se houver evidência clara dele nos comentários deste lote.
-- Para cada padrão reforçado, preencha "evidenceQuote" com uma citação (ou paráfrase muito próxima) do comentário que evidencia a recorrência.
+- Para cada padrão reforçado, preencha "evidenceQuote" com uma citação do comentário que evidencia a recorrência.
 - Um mesmo padrão não deve aparecer mais de uma vez em "reinforced", mesmo que apareça em múltiplos comentários do lote.
 - Se nenhum dos padrões da lista aparecer nos comentários, defina "noticedNothing" como true e deixe "reinforced" vazio.`;
 
 const DISCOVERY_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
 
-Você recebe três blocos de informação: (1) padrões já ativos e confirmados para este trader — NÃO os recrie nem os reporte novamente, eles já são tratados por outro processo; (2) candidatos emergentes — padrões observados uma única vez até agora, cada um com um ID; e (3) os comentários de trades de UM único dia.
+Você recebe três blocos de informação: (1) padrões já ativos e confirmados para este trader — NÃO os recrie nem os reporte novamente, eles já são tratados por outro processo; (2) candidatos emergentes — padrões observados uma única vez até agora, cada um com um ID; e (3) os comentários do diario de trades de UM único dia.
 
 Sua tarefa, olhando apenas para os comentários deste dia:
 - Se um comentário evidenciar um padrão que já está na lista de candidatos emergentes, inclua-o em "promoted", referenciando exatamente o ID fornecido para aquele candidato — nunca invente um ID que não esteja na lista.
@@ -38,10 +38,18 @@ Sua tarefa, olhando apenas para os comentários deste dia:
 - Se um comentário evidenciar um padrão genuinamente novo (que não corresponde a nenhum padrão ativo nem a nenhum candidato emergente), inclua-o em "newEmergent".
 
 Regras:
+- Cada "text" (o próprio padrão) deve ter no máximo 1 frase sucinta e objetiva que descreva o comportamento.
 - Um mesmo padrão não deve aparecer mais de uma vez em "promoted" nem em "newEmergent", mesmo que apareça em múltiplos comentários deste dia.
-- Para cada item em "promoted" e em "newEmergent", preencha "evidenceQuote" com uma citação (ou paráfrase muito próxima) de um comentário deste dia que evidencia o padrão.
+- Para cada item em "promoted" e em "newEmergent", preencha "evidenceQuote" com uma citação de um comentário deste dia que evidencia o padrão.
 - Um único dia de comentários nunca é evidência suficiente para confirmar um padrão como definitivo — apenas classifique corretamente; a confirmação entre dias é feita automaticamente pelo sistema.
-- Se nenhum padrão novo ou candidato reconhecido aparecer nos comentários deste dia, deixe ambas as listas vazias.`;
+- Se nenhum padrão novo ou candidato reconhecido aparecer nos comentários deste dia, deixe ambas as listas vazias.
+
+Exemplos de padrões bem formulados:
+- Entrar em trades atrasado devido à hesitação, resultando em piores stops e risco-retorno
+- Colocar stops muito apertados (no ou abaixo do stop técnico), sendo tirado de trades que depois funcionaram
+- Leitura precisa da ação do preço e da estrutura de barras (barras de sinal, barras especiais, reversões de duas barras, setups de reversão à média)
+- Emoções guiando as decisões, levando à passividade no momento da entrada
+- Não reentrar após ser stopado, perdendo o sinal válido subsequente`;
 
 function serializeComments(comments: string[]): string {
   return comments.map((text, i) => `Comentário ${i + 1}: "${text}"`).join("\n\n");
@@ -88,13 +96,29 @@ export function validateDiscoveryOutput(
     promoted: { emergentId: string; evidenceQuote: string }[];
     newEmergent: { text: string; evidenceQuote: string }[];
   },
-): { promotedIds: string[]; newEmergentTexts: string[] } {
+): {
+  promoted: { id: string; evidenceQuote: string }[];
+  newEmergent: { text: string; evidenceQuote: string }[];
+} {
   const candidateIds = new Set(emergentCandidates.map((c) => c.id));
-  const promotedIds = [...new Set(llmOutput.promoted.map((p) => p.emergentId).filter((id) => candidateIds.has(id)))];
-  const newEmergentTexts = [
-    ...new Set(llmOutput.newEmergent.map((n) => n.text.trim()).filter((text) => text.length > 0)),
-  ];
-  return { promotedIds, newEmergentTexts };
+  const seenIds = new Set<string>();
+  const promoted: { id: string; evidenceQuote: string }[] = [];
+  for (const p of llmOutput.promoted) {
+    if (!candidateIds.has(p.emergentId) || seenIds.has(p.emergentId)) continue;
+    seenIds.add(p.emergentId);
+    promoted.push({ id: p.emergentId, evidenceQuote: p.evidenceQuote });
+  }
+
+  const seenTexts = new Set<string>();
+  const newEmergent: { text: string; evidenceQuote: string }[] = [];
+  for (const n of llmOutput.newEmergent) {
+    const text = n.text.trim();
+    if (text.length === 0 || seenTexts.has(text)) continue;
+    seenTexts.add(text);
+    newEmergent.push({ text, evidenceQuote: n.evidenceQuote });
+  }
+
+  return { promoted, newEmergent };
 }
 
 type EligibleDay = Awaited<ReturnType<typeof sessionsService.listEligibleForForwardPass>>[number];
@@ -108,7 +132,7 @@ async function processDay(
   const commented = entries.filter((e) => e.comment && e.comment.trim() !== "");
   const activeInsights = await behaviorInsightsService.listActive(userId);
 
-  let reinforcedIds: string[] = [];
+  let reinforced: { id: string; evidenceQuote: string }[] = [];
   if (day.reinforceProcessed === null && activeInsights.length > 0 && commented.length > 0) {
     const { object } = await generateObject({
       model: openai("gpt-5.4-mini"),
@@ -118,11 +142,16 @@ async function processDay(
         commented.map((e) => e.comment as string),
       )}`,
     });
-    reinforcedIds = [...new Set(object.reinforced.map((r) => r.insightId))];
+    const seen = new Set<string>();
+    for (const r of object.reinforced) {
+      if (seen.has(r.insightId)) continue;
+      seen.add(r.insightId);
+      reinforced.push({ id: r.insightId, evidenceQuote: r.evidenceQuote });
+    }
   }
 
-  let promotedIds: string[] = [];
-  let newEmergentTexts: string[] = [];
+  let promoted: { id: string; evidenceQuote: string }[] = [];
+  let newEmergent: { text: string; evidenceQuote: string }[] = [];
   if (day.newInsightsProcessed === null && commented.length > 0) {
     const emergentCandidates = await behaviorInsightsService.listEmergent(userId);
     const processedSessions = await sessionsService.listProcessedForDiscovery(userId);
@@ -136,18 +165,18 @@ async function processDay(
         inHorizon,
       )}\n\n${serializeComments(commented.map((e) => e.comment as string))}`,
     });
-    ({ promotedIds, newEmergentTexts } = validateDiscoveryOutput(inHorizon, object));
+    ({ promoted, newEmergent } = validateDiscoveryOutput(inHorizon, object));
   }
 
   await db.transaction(async (tx) => {
-    if (reinforcedIds.length > 0) {
-      await behaviorInsightsService.update(reinforcedIds, tx);
+    if (reinforced.length > 0) {
+      await behaviorInsightsService.update(reinforced, tx);
     }
-    if (promotedIds.length > 0) {
-      await behaviorInsightsService.promoteEmergent(promotedIds, tx);
+    if (promoted.length > 0) {
+      await behaviorInsightsService.promoteEmergent(promoted, tx);
     }
-    if (newEmergentTexts.length > 0) {
-      await behaviorInsightsService.stageEmergent(userId, newEmergentTexts, tx);
+    if (newEmergent.length > 0) {
+      await behaviorInsightsService.stageEmergent(userId, newEmergent, tx);
     }
     if (day.reinforceProcessed === null) {
       await sessionsService.stampReinforceProcessed(sessionIds, tx);
@@ -157,7 +186,7 @@ async function processDay(
     }
   });
 
-  return { reinforcedCount: reinforcedIds.length, promotedCount: promotedIds.length };
+  return { reinforcedCount: reinforced.length, promotedCount: promoted.length };
 }
 
 export const behaviorInsightExtractionService = {

@@ -85,6 +85,7 @@ export const behaviorInsights = pgTable("behavior_insights", {
   userId: uuid("user_id").notNull(),
   text: text("text").notNull(),
   evidenceCount: integer("evidence_count").notNull().default(0),
+  evidenceQuotes: text("evidence_quotes").array().notNull().default([]),
   firstSeen: timestamp("first_seen", { withTimezone: true }).defaultNow().notNull(),
   lastSeen: timestamp("last_seen", { withTimezone: true }).defaultNow().notNull(),
   status: behaviorInsightStatusEnum("status").notNull().default("active"),

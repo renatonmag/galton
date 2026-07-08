@@ -1,0 +1,1 @@
+ALTER TABLE "behavior_insights" ADD COLUMN "evidence_quotes" text[] DEFAULT '{}' NOT NULL;

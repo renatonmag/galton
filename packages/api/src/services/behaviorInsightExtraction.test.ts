@@ -7,12 +7,12 @@ describe("validateDiscoveryOutput", () => {
     { id: "e2", text: "Stop muito apertado" },
   ];
 
-  it("keeps promoted ids that match a known emergent candidate", () => {
+  it("keeps promoted ids that match a known emergent candidate, carrying the quote", () => {
     const result = validateDiscoveryOutput(candidates, {
-      promoted: [{ emergentId: "e1", evidenceQuote: "..." }],
+      promoted: [{ emergentId: "e1", evidenceQuote: "hesitei de novo" }],
       newEmergent: [],
     });
-    expect(result.promotedIds).toEqual(["e1"]);
+    expect(result.promoted).toEqual([{ id: "e1", evidenceQuote: "hesitei de novo" }]);
   });
 
   it("drops promoted ids that don't match any candidate (hallucinated id)", () => {
@@ -20,10 +20,10 @@ describe("validateDiscoveryOutput", () => {
       promoted: [{ emergentId: "does-not-exist", evidenceQuote: "..." }],
       newEmergent: [],
     });
-    expect(result.promotedIds).toEqual([]);
+    expect(result.promoted).toEqual([]);
   });
 
-  it("dedupes repeated valid promoted ids", () => {
+  it("dedupes repeated valid promoted ids, keeping the first quote", () => {
     const result = validateDiscoveryOutput(candidates, {
       promoted: [
         { emergentId: "e1", evidenceQuote: "a" },
@@ -31,7 +31,7 @@ describe("validateDiscoveryOutput", () => {
       ],
       newEmergent: [],
     });
-    expect(result.promotedIds).toEqual(["e1"]);
+    expect(result.promoted).toEqual([{ id: "e1", evidenceQuote: "a" }]);
   });
 
   it("drops empty/whitespace-only newEmergent text", () => {
@@ -39,10 +39,10 @@ describe("validateDiscoveryOutput", () => {
       promoted: [],
       newEmergent: [{ text: "   ", evidenceQuote: "..." }],
     });
-    expect(result.newEmergentTexts).toEqual([]);
+    expect(result.newEmergent).toEqual([]);
   });
 
-  it("dedupes identical newEmergent text within one response", () => {
+  it("dedupes identical newEmergent text within one response, keeping the first quote", () => {
     const result = validateDiscoveryOutput(candidates, {
       promoted: [],
       newEmergent: [
@@ -50,12 +50,12 @@ describe("validateDiscoveryOutput", () => {
         { text: "Vender cedo demais", evidenceQuote: "b" },
       ],
     });
-    expect(result.newEmergentTexts).toEqual(["Vender cedo demais"]);
+    expect(result.newEmergent).toEqual([{ text: "Vender cedo demais", evidenceQuote: "a" }]);
   });
 
   it("returns empty arrays when the LLM output is empty", () => {
     const result = validateDiscoveryOutput(candidates, { promoted: [], newEmergent: [] });
-    expect(result).toEqual({ promotedIds: [], newEmergentTexts: [] });
+    expect(result).toEqual({ promoted: [], newEmergent: [] });
   });
 });
 
