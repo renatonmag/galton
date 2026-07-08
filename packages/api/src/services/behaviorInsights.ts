@@ -14,6 +14,15 @@ export const behaviorInsightsService = {
     return rows.length > 0;
   },
 
+  hasActive: async (userId: string): Promise<boolean> => {
+    const rows = await db
+      .select({ id: behaviorInsights.id })
+      .from(behaviorInsights)
+      .where(and(eq(behaviorInsights.userId, userId), eq(behaviorInsights.status, "active")))
+      .limit(1);
+    return rows.length > 0;
+  },
+
   listActive: async (userId: string): Promise<{ id: string; text: string }[]> => {
     return db
       .select({ id: behaviorInsights.id, text: behaviorInsights.text })

@@ -152,7 +152,7 @@ export const behaviorInsightExtractionService = {
   },
 
   reinforceForUser: async (userId: string): Promise<BehaviorInsightReinforcementOutcome> => {
-    if (!(await behaviorInsightsService.hasAny(userId))) {
+    if (!(await behaviorInsightsService.hasActive(userId))) {
       return { skipped: true, reason: "not_bootstrapped" };
     }
 

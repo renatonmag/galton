@@ -1,0 +1,1 @@
+ALTER TYPE "public"."behavior_insight_status" ADD VALUE 'emergent';
