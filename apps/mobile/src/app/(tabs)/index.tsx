@@ -12,6 +12,10 @@ import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "re
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
+function patternWord(n: number): string {
+  return n === 1 ? "padrão" : "padrões";
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const { data: stats, isLoading, isError, refetch } = useStats();
@@ -33,14 +37,14 @@ export default function HomeScreen() {
       if (result.error) {
         Alert.alert(
           "Análise parcial",
-          `${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} processado${result.sessionsProcessed === 1 ? "" : "s"} antes de um erro interromper a análise. Tente novamente mais tarde.`,
+          `${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} processado${result.sessionsProcessed === 1 ? "" : "s"} antes de um erro interromper a análise. Restam ${result.remaining} dia${result.remaining === 1 ? "" : "s"} — toque novamente para continuar.`,
         );
         return;
       }
 
       Alert.alert(
         "Dias analisados",
-        `${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} analisado${result.sessionsProcessed === 1 ? "" : "s"}, ${result.reinforcementsApplied} padrão${result.reinforcementsApplied === 1 ? "" : "ões"} reforçado${result.reinforcementsApplied === 1 ? "" : "s"}.`,
+        `${result.patternsPromoted} novo${result.patternsPromoted === 1 ? "" : "s"} ${patternWord(result.patternsPromoted)} detectado${result.patternsPromoted === 1 ? "" : "s"}, ${result.reinforcementsApplied} ${patternWord(result.reinforcementsApplied)} reforçado${result.reinforcementsApplied === 1 ? "" : "s"}, ${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} analisado${result.sessionsProcessed === 1 ? "" : "s"}.`,
       );
     } catch {
       Alert.alert("Erro", "Não foi possível analisar os dias agora. Tente novamente.");
