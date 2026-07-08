@@ -1,19 +1,27 @@
-import { and, asc, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
 
 type Executor = Pick<typeof db, "update">;
 
-function listEligibleSessions(userId: string, unprocessedColumn: PgColumn) {
+function listEligibleSessions(userId: string, unprocessedColumns: PgColumn[]) {
+  const pendingCondition =
+    unprocessedColumns.length === 1 ? isNull(unprocessedColumns[0]) : or(...unprocessedColumns.map((c) => isNull(c)));
+
   return db
-    .select({ id: sessions.id, openedAt: sessions.openedAt })
+    .select({
+      id: sessions.id,
+      openedAt: sessions.openedAt,
+      reinforceProcessed: sessions.reinforceProcessed,
+      newInsightsProcessed: sessions.newInsightsProcessed,
+    })
     .from(sessions)
     .innerJoin(tradeEntries, eq(tradeEntries.sessionId, sessions.id))
     .where(
       and(
         eq(sessions.userId, userId),
-        isNull(unprocessedColumn),
+        pendingCondition,
         sql`length(trim(coalesce(${tradeEntries.comment}, ''))) > 0`,
       ),
     )
@@ -77,11 +85,15 @@ export const sessionsService = {
   },
 
   listEligibleForNewInsights: async (userId: string) => {
-    return listEligibleSessions(userId, sessions.newInsightsProcessed);
+    return listEligibleSessions(userId, [sessions.newInsightsProcessed]);
   },
 
   listEligibleForReinforcement: async (userId: string) => {
-    return listEligibleSessions(userId, sessions.reinforceProcessed);
+    return listEligibleSessions(userId, [sessions.reinforceProcessed]);
+  },
+
+  listEligibleForForwardPass: async (userId: string) => {
+    return listEligibleSessions(userId, [sessions.reinforceProcessed, sessions.newInsightsProcessed]);
   },
 
   stampBootstrapProcessed: async (sessionIds: string[], executor: Executor = db) => {
@@ -99,6 +111,15 @@ export const sessionsService = {
     return executor
       .update(sessions)
       .set({ reinforceProcessed: new Date() })
+      .where(inArray(sessions.id, sessionIds))
+      .returning();
+  },
+
+  stampNewInsightsProcessed: async (sessionIds: string[], executor: Executor = db) => {
+    if (sessionIds.length === 0) return [];
+    return executor
+      .update(sessions)
+      .set({ newInsightsProcessed: new Date() })
       .where(inArray(sessions.id, sessionIds))
       .returning();
   },
