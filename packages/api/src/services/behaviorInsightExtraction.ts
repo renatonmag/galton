@@ -83,7 +83,7 @@ export type BehaviorInsightReinforcementOutcome =
       error?: { message: string; windowIndex: number };
     };
 
-type EligibleSession = Awaited<ReturnType<typeof sessionsService.listEligibleForAnalysis>>[number];
+type EligibleSession = Awaited<ReturnType<typeof sessionsService.listEligibleForReinforcement>>[number];
 
 async function reinforceWindow(
   userId: string,
@@ -111,7 +111,7 @@ async function reinforceWindow(
     if (reinforcedIds.length > 0) {
       await behaviorInsightsService.update(reinforcedIds, tx);
     }
-    await sessionsService.stampCommentsProcessed(sessionIds, tx);
+    await sessionsService.stampReinforceProcessed(sessionIds, tx);
   });
 
   return { sessionsCount: sessionIds.length, reinforcedCount: reinforcedIds.length };
@@ -123,7 +123,7 @@ export const behaviorInsightExtractionService = {
       return { skipped: true, reason: "already_extracted" };
     }
 
-    const eligible = await sessionsService.listEligibleForAnalysis(userId);
+    const eligible = await sessionsService.listEligibleForNewInsights(userId);
     if (eligible.length === 0) {
       return { skipped: true, reason: "no_comments" };
     }
@@ -147,7 +147,7 @@ export const behaviorInsightExtractionService = {
           )
         : [];
 
-    await sessionsService.stampCommentsProcessed(sessionIds);
+    await sessionsService.stampBootstrapProcessed(sessionIds);
     return { skipped: false, created };
   },
 
@@ -156,7 +156,7 @@ export const behaviorInsightExtractionService = {
       return { skipped: true, reason: "not_bootstrapped" };
     }
 
-    const eligible = await sessionsService.listEligibleForAnalysis(userId);
+    const eligible = await sessionsService.listEligibleForReinforcement(userId);
     if (eligible.length === 0) {
       return { skipped: true, reason: "nothing_pending" };
     }
@@ -188,7 +188,7 @@ export const behaviorInsightExtractionService = {
 
   pendingCount: async (userId: string): Promise<number> => {
     if (!(await behaviorInsightsService.hasAny(userId))) return 0;
-    const eligible = await sessionsService.listEligibleForAnalysis(userId);
+    const eligible = await sessionsService.listEligibleForReinforcement(userId);
     return eligible.length;
   },
 };

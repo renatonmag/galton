@@ -1,5 +1,5 @@
 {
-  "id": "f4e05f53-e47b-4e2e-ada7-37af430da4a4",
+  "id": "d6a4903d-c5e9-4d55-9707-330f4448fc2c",
   "prevId": "63c31bcf-bcea-4f4b-89ad-626e87685034",
   "version": "7",
   "dialect": "postgresql",
@@ -181,8 +181,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "comments_processed": {
-          "name": "comments_processed",
+        "reinforce_processed": {
+          "name": "reinforce_processed",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "new_insights_processed": {
+          "name": "new_insights_processed",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false

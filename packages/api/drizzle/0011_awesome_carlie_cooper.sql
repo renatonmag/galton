@@ -1,1 +1,0 @@
-ALTER TABLE "sessions" ADD COLUMN "comments_processed" timestamp with time zone;

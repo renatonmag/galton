@@ -24,7 +24,8 @@ export const sessions = pgTable("sessions", {
   name: text("name").notNull(),
   openedAt: timestamp("opened_at", { withTimezone: true }).defaultNow().notNull(),
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
-  commentsProcessed: timestamp("comments_processed", { withTimezone: true }),
+  reinforceProcessed: timestamp("reinforce_processed", { withTimezone: true }),
+  newInsightsProcessed: timestamp("new_insights_processed", { withTimezone: true }),
 });
 
 export const userPreferences = pgTable("user_preferences", {
