@@ -51,6 +51,26 @@ function serializeInsightCandidates(insights: { id: string; text: string }[]): s
   return insights.map((insight) => `ID ${insight.id}: ${insight.text}`).join("\n");
 }
 
+const EMERGENT_HORIZON_SESSIONS = 10;
+
+export function filterEmergentByHorizon(
+  candidates: { id: string; text: string; lastSeen: Date }[],
+  processedSessions: { id: string; openedAt: Date }[],
+  horizon: number = EMERGENT_HORIZON_SESSIONS,
+): { inHorizon: { id: string; text: string; lastSeen: Date }[]; evictedIds: string[] } {
+  const inHorizon: { id: string; text: string; lastSeen: Date }[] = [];
+  const evictedIds: string[] = [];
+  for (const candidate of candidates) {
+    const sessionsSinceLastSeen = processedSessions.filter((s) => s.openedAt > candidate.lastSeen).length;
+    if (sessionsSinceLastSeen >= horizon) {
+      evictedIds.push(candidate.id);
+    } else {
+      inHorizon.push(candidate);
+    }
+  }
+  return { inHorizon, evictedIds };
+}
+
 export type BehaviorInsightForwardOutcome =
   | { skipped: true; reason: "nothing_pending" }
   | {
@@ -105,15 +125,18 @@ async function processDay(
   let newEmergentTexts: string[] = [];
   if (day.newInsightsProcessed === null && commented.length > 0) {
     const emergentCandidates = await behaviorInsightsService.listEmergent(userId);
+    const processedSessions = await sessionsService.listProcessedForDiscovery(userId);
+    const { inHorizon } = filterEmergentByHorizon(emergentCandidates, processedSessions);
+
     const { object } = await generateObject({
       model: openai("gpt-5.4-mini"),
       schema: discoverySchema,
       system: DISCOVERY_SYSTEM_PROMPT,
       prompt: `Padrões ativos (não recriar):\n${serializeInsightCandidates(activeInsights)}\n\nCandidatos emergentes:\n${serializeInsightCandidates(
-        emergentCandidates,
+        inHorizon,
       )}\n\n${serializeComments(commented.map((e) => e.comment as string))}`,
     });
-    ({ promotedIds, newEmergentTexts } = validateDiscoveryOutput(emergentCandidates, object));
+    ({ promotedIds, newEmergentTexts } = validateDiscoveryOutput(inHorizon, object));
   }
 
   await db.transaction(async (tx) => {

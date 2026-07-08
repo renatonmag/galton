@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateDiscoveryOutput } from "./behaviorInsightExtraction.js";
+import { filterEmergentByHorizon, validateDiscoveryOutput } from "./behaviorInsightExtraction.js";
 
 describe("validateDiscoveryOutput", () => {
   const candidates = [
@@ -56,5 +56,54 @@ describe("validateDiscoveryOutput", () => {
   it("returns empty arrays when the LLM output is empty", () => {
     const result = validateDiscoveryOutput(candidates, { promoted: [], newEmergent: [] });
     expect(result).toEqual({ promotedIds: [], newEmergentTexts: [] });
+  });
+});
+
+describe("filterEmergentByHorizon", () => {
+  const day = (n: number) => new Date(`2026-01-${String(n).padStart(2, "0")}T12:00:00Z`);
+  const processedSessions = Array.from({ length: 12 }, (_, i) => ({ id: `s${i + 1}`, openedAt: day(i + 1) }));
+
+  it("keeps a candidate well within the horizon (just created)", () => {
+    const candidates = [{ id: "e1", text: "x", lastSeen: day(12) }];
+    const result = filterEmergentByHorizon(candidates, processedSessions, 10);
+    expect(result.inHorizon.map((c) => c.id)).toEqual(["e1"]);
+    expect(result.evictedIds).toEqual([]);
+  });
+
+  it("keeps a candidate exactly at the boundary (9 sessions since lastSeen, N=10)", () => {
+    const candidates = [{ id: "e1", text: "x", lastSeen: day(3) }];
+    const result = filterEmergentByHorizon(candidates, processedSessions, 10);
+    expect(result.inHorizon.map((c) => c.id)).toEqual(["e1"]);
+    expect(result.evictedIds).toEqual([]);
+  });
+
+  it("evicts a candidate exactly past the boundary (10 sessions since lastSeen, N=10)", () => {
+    const candidates = [{ id: "e1", text: "x", lastSeen: day(2) }];
+    const result = filterEmergentByHorizon(candidates, processedSessions, 10);
+    expect(result.inHorizon).toEqual([]);
+    expect(result.evictedIds).toEqual(["e1"]);
+  });
+
+  it("evicts a candidate well past the horizon", () => {
+    const candidates = [{ id: "e1", text: "x", lastSeen: day(1) }];
+    const result = filterEmergentByHorizon(candidates, processedSessions, 10);
+    expect(result.evictedIds).toEqual(["e1"]);
+  });
+
+  it("partitions a mixed list into in-horizon and evicted independently", () => {
+    const candidates = [
+      { id: "keep", text: "x", lastSeen: day(12) },
+      { id: "evict", text: "y", lastSeen: day(1) },
+    ];
+    const result = filterEmergentByHorizon(candidates, processedSessions, 10);
+    expect(result.inHorizon.map((c) => c.id)).toEqual(["keep"]);
+    expect(result.evictedIds).toEqual(["evict"]);
+  });
+
+  it("keeps everything when processedSessions is empty (no history yet)", () => {
+    const candidates = [{ id: "e1", text: "x", lastSeen: day(1) }];
+    const result = filterEmergentByHorizon(candidates, [], 10);
+    expect(result.inHorizon.map((c) => c.id)).toEqual(["e1"]);
+    expect(result.evictedIds).toEqual([]);
   });
 });

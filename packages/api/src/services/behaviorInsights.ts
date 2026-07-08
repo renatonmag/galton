@@ -12,9 +12,9 @@ export const behaviorInsightsService = {
       .where(and(eq(behaviorInsights.userId, userId), eq(behaviorInsights.status, "active")));
   },
 
-  listEmergent: async (userId: string): Promise<{ id: string; text: string }[]> => {
+  listEmergent: async (userId: string): Promise<{ id: string; text: string; lastSeen: Date }[]> => {
     return db
-      .select({ id: behaviorInsights.id, text: behaviorInsights.text })
+      .select({ id: behaviorInsights.id, text: behaviorInsights.text, lastSeen: behaviorInsights.lastSeen })
       .from(behaviorInsights)
       .where(and(eq(behaviorInsights.userId, userId), eq(behaviorInsights.status, "emergent")));
   },
