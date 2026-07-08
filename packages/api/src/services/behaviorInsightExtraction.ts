@@ -207,6 +207,11 @@ export const behaviorInsightExtractionService = {
         reinforcementsApplied += result.reinforcedCount;
         patternsPromoted += result.promotedCount;
       } catch (err) {
+        console.error(
+          `[behaviorInsightExtraction] forward pass failed on session ${day.id} ` +
+            `(userId=${userId}, sessionsProcessed=${sessionsProcessed}):`,
+          err,
+        );
         return {
           skipped: false,
           sessionsProcessed,
