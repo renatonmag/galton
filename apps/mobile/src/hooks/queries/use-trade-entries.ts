@@ -112,6 +112,12 @@ export function useUpdateTradeEntry(sessionId: string) {
       );
       return { previous };
     },
+    onSuccess: (tradeEntry) => {
+      const key = queryKeys.tradeEntries(sessionId);
+      queryClient.setQueryData<TradeEntry[]>(key, (old) =>
+        old?.map((e) => (e.id === tradeEntry.id ? tradeEntry : e)),
+      );
+    },
     onError: (_err, _vars, context) => {
       if (context) {
         queryClient.setQueryData(queryKeys.tradeEntries(sessionId), context.previous);
