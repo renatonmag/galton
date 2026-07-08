@@ -5,24 +5,6 @@ import { behaviorInsights } from "../db/schema.js";
 type Executor = Pick<typeof db, "update" | "insert">;
 
 export const behaviorInsightsService = {
-  hasAny: async (userId: string): Promise<boolean> => {
-    const rows = await db
-      .select({ id: behaviorInsights.id })
-      .from(behaviorInsights)
-      .where(eq(behaviorInsights.userId, userId))
-      .limit(1);
-    return rows.length > 0;
-  },
-
-  hasActive: async (userId: string): Promise<boolean> => {
-    const rows = await db
-      .select({ id: behaviorInsights.id })
-      .from(behaviorInsights)
-      .where(and(eq(behaviorInsights.userId, userId), eq(behaviorInsights.status, "active")))
-      .limit(1);
-    return rows.length > 0;
-  },
-
   listActive: async (userId: string): Promise<{ id: string; text: string }[]> => {
     return db
       .select({ id: behaviorInsights.id, text: behaviorInsights.text })
@@ -51,14 +33,6 @@ export const behaviorInsightsService = {
       .update(behaviorInsights)
       .set({ status: "active", evidenceCount: 2, lastSeen: new Date() })
       .where(and(inArray(behaviorInsights.id, ids), eq(behaviorInsights.status, "emergent")))
-      .returning();
-  },
-
-  create: async (userId: string, texts: string[]) => {
-    if (texts.length === 0) return [];
-    return db
-      .insert(behaviorInsights)
-      .values(texts.map((text) => ({ userId, text, evidenceCount: 1 })))
       .returning();
   },
 

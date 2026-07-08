@@ -84,26 +84,8 @@ export const sessionsService = {
     return rows[0];
   },
 
-  listEligibleForNewInsights: async (userId: string) => {
-    return listEligibleSessions(userId, [sessions.newInsightsProcessed]);
-  },
-
-  listEligibleForReinforcement: async (userId: string) => {
-    return listEligibleSessions(userId, [sessions.reinforceProcessed]);
-  },
-
   listEligibleForForwardPass: async (userId: string) => {
     return listEligibleSessions(userId, [sessions.reinforceProcessed, sessions.newInsightsProcessed]);
-  },
-
-  stampBootstrapProcessed: async (sessionIds: string[], executor: Executor = db) => {
-    if (sessionIds.length === 0) return [];
-    const now = new Date();
-    return executor
-      .update(sessions)
-      .set({ newInsightsProcessed: now, reinforceProcessed: now })
-      .where(inArray(sessions.id, sessionIds))
-      .returning();
   },
 
   stampReinforceProcessed: async (sessionIds: string[], executor: Executor = db) => {

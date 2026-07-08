@@ -1,5 +1,4 @@
 import {
-  useExtractBehaviorInsights,
   usePendingBehaviorInsightsCount,
   useReinforceBehaviorInsights,
 } from "@/hooks/queries/use-behavior-insights";
@@ -20,57 +19,14 @@ export default function HomeScreen() {
   useRefreshOnFocus(refetch);
   useRefreshOnFocus(refetchPendingCount);
 
-  const extractInsights = useExtractBehaviorInsights();
   const reinforceInsights = useReinforceBehaviorInsights();
-
-  const handleAnalyzePatterns = useCallback(async () => {
-    try {
-      const result = await extractInsights.mutateAsync();
-
-      if (result.skipped) {
-        if (result.reason === "already_extracted") {
-          Alert.alert(
-            "Padrões já analisados",
-            "Você já tem padrões de comportamento identificados.",
-          );
-        } else {
-          Alert.alert(
-            "Sem comentários suficientes",
-            "Adicione comentários aos seus trades para analisar padrões de comportamento.",
-          );
-        }
-        return;
-      }
-
-      if (result.noticedNothing) {
-        Alert.alert(
-          "Nenhum padrão identificado",
-          "Não encontramos padrões repetitivos nos seus comentários ainda.",
-        );
-        return;
-      }
-
-      const count = result.insights.length;
-      Alert.alert(
-        "Padrões identificados",
-        `${count} novo${count > 1 ? "s" : ""} padrão${count > 1 ? "ões" : ""} de comportamento identificado${count > 1 ? "s" : ""}.`,
-      );
-    } catch {
-      Alert.alert("Erro", "Não foi possível analisar os padrões agora. Tente novamente.");
-    }
-  }, [extractInsights]);
 
   const handleAnalyzeDays = useCallback(async () => {
     try {
       const result = await reinforceInsights.mutateAsync();
 
       if (result.skipped) {
-        Alert.alert(
-          "Nada para analisar",
-          result.reason === "not_bootstrapped"
-            ? "Analise seus padrões de comportamento primeiro."
-            : "Não há dias novos para analisar no momento.",
-        );
+        Alert.alert("Nada para analisar", "Não há dias novos para analisar no momento.");
         return;
       }
 
@@ -135,24 +91,7 @@ export default function HomeScreen() {
         )}
 
         <TouchableOpacity
-          style={styles.analyzeButton}
-          onPress={handleAnalyzePatterns}
-          disabled={extractInsights.isPending}
-          hitSlop={8}
-        >
-          {extractInsights.isPending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.analyzeButtonText}>Analisar padrões</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.analyzeButton,
-            styles.reinforceButton,
-            (!pendingCount || reinforceInsights.isPending) && styles.analyzeButtonDisabled,
-          ]}
+          style={[styles.analyzeButton, (!pendingCount || reinforceInsights.isPending) && styles.analyzeButtonDisabled]}
           onPress={handleAnalyzeDays}
           disabled={!pendingCount || reinforceInsights.isPending}
           hitSlop={8}
@@ -276,9 +215,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
-  },
-  reinforceButton: {
-    marginTop: 12,
   },
   analyzeButtonDisabled: {
     opacity: 0.4,

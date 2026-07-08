@@ -6,14 +6,6 @@ import { behaviorInsightsService } from "./behaviorInsights.js";
 import { sessionsService } from "./sessions.js";
 import { tradeEntriesForSessions } from "./tradeEntries.js";
 
-const WINDOW_SIZE = 2;
-
-const extractionSchema = z.object({
-  reinforced: z.array(z.object({ insightId: z.string(), evidenceQuote: z.string() })),
-  newInsights: z.array(z.object({ text: z.string(), evidenceQuote: z.string() })),
-  noticedNothing: z.boolean(),
-});
-
 const reinforcementSchema = z.object({
   reinforced: z.array(z.object({ insightId: z.string(), evidenceQuote: z.string() })),
   noticedNothing: z.boolean(),
@@ -23,26 +15,6 @@ const discoverySchema = z.object({
   promoted: z.array(z.object({ emergentId: z.string(), evidenceQuote: z.string() })),
   newEmergent: z.array(z.object({ text: z.string(), evidenceQuote: z.string() })),
 });
-
-const SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
-
-Extraia destes comentários os padrões de comportamentos repetitivos do trader.
-
-Não existem comportamentos anteriores registrados para reforçar — portanto, todo padrão identificado deve ser incluído em "newInsights"; o campo "reinforced" deve permanecer vazio.
-
-Regras:
-- Cada "text" (o próprio padrão) deve ter no máximo 1 frase sucinta e objetiva que descreva o comportamento.
-- Só inclua um padrão se ele for evidenciado por 2 ou mais comentários diferentes — nunca invente um padrão a partir de um único comentário.
-- Para cada padrão em "newInsights", preencha "evidenceQuote" com uma citação (ou paráfrase muito próxima) de um dos comentários que evidencia o padrão — serve apenas para fundamentar a extração.
-- Se nenhum padrão repetitivo puder ser identificado com confiança, defina "noticedNothing" como true e deixe "newInsights" vazio.
-- Seja específico sobre o tipo de situação que evidencia o padrão — evite frases vagas como "seja mais disciplinado".
-
-Exemplos de padrões bem formulados:
-- Entrar em trades atrasado devido à hesitação, resultando em piores stops e risco-retorno
-- Colocar stops muito apertados (no ou abaixo do stop técnico), sendo tirado de trades que depois funcionaram
-- Leitura precisa da ação do preço e da estrutura de barras (barras de sinal, barras especiais, reversões de duas barras, setups de reversão à média)
-- Emoções guiando as decisões, levando à passividade no momento da entrada
-- Não reentrar após ser stopado, perdendo o sinal válido subsequente`;
 
 const REINFORCEMENT_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
 
@@ -79,13 +51,7 @@ function serializeInsightCandidates(insights: { id: string; text: string }[]): s
   return insights.map((insight) => `ID ${insight.id}: ${insight.text}`).join("\n");
 }
 
-export type BehaviorInsightExtractionOutcome =
-  | { skipped: true; reason: "already_extracted" }
-  | { skipped: true; reason: "no_comments" }
-  | { skipped: false; created: Awaited<ReturnType<typeof behaviorInsightsService.create>> };
-
 export type BehaviorInsightForwardOutcome =
-  | { skipped: true; reason: "not_bootstrapped" }
   | { skipped: true; reason: "nothing_pending" }
   | {
       skipped: false;
@@ -172,44 +138,7 @@ async function processDay(
 }
 
 export const behaviorInsightExtractionService = {
-  extractForUser: async (userId: string): Promise<BehaviorInsightExtractionOutcome> => {
-    if (await behaviorInsightsService.hasAny(userId)) {
-      return { skipped: true, reason: "already_extracted" };
-    }
-
-    const eligible = await sessionsService.listEligibleForNewInsights(userId);
-    if (eligible.length === 0) {
-      return { skipped: true, reason: "no_comments" };
-    }
-
-    const sessionIds = eligible.slice(0, WINDOW_SIZE).map((s) => s.id);
-    const entries = await tradeEntriesForSessions(sessionIds);
-    const commented = entries.filter((e) => e.comment && e.comment.trim() !== "");
-
-    const { object } = await generateObject({
-      model: openai("gpt-5.4-mini"),
-      schema: extractionSchema,
-      system: SYSTEM_PROMPT,
-      prompt: serializeComments(commented.map((e) => e.comment as string)),
-    });
-
-    const created =
-      object.newInsights.length > 0
-        ? await behaviorInsightsService.create(
-            userId,
-            object.newInsights.map((i) => i.text),
-          )
-        : [];
-
-    await sessionsService.stampBootstrapProcessed(sessionIds);
-    return { skipped: false, created };
-  },
-
-  reinforceForUser: async (userId: string): Promise<BehaviorInsightForwardOutcome> => {
-    if (!(await behaviorInsightsService.hasActive(userId))) {
-      return { skipped: true, reason: "not_bootstrapped" };
-    }
-
+  runForwardPass: async (userId: string): Promise<BehaviorInsightForwardOutcome> => {
     const eligible = await sessionsService.listEligibleForForwardPass(userId);
     if (eligible.length === 0) {
       return { skipped: true, reason: "nothing_pending" };
@@ -241,8 +170,7 @@ export const behaviorInsightExtractionService = {
   },
 
   pendingCount: async (userId: string): Promise<number> => {
-    if (!(await behaviorInsightsService.hasAny(userId))) return 0;
-    const eligible = await sessionsService.listEligibleForReinforcement(userId);
+    const eligible = await sessionsService.listEligibleForForwardPass(userId);
     return eligible.length;
   },
 };
