@@ -50,7 +50,7 @@ export const behaviorInsightsService = {
             status: "active",
             evidenceCount: 2,
             lastSeen: now,
-            evidenceQuotes: sql`${behaviorInsights.evidenceQuotes} || ${evidenceQuote}`,
+            evidenceQuotes: sql`array_append(${behaviorInsights.evidenceQuotes}, ${evidenceQuote})`,
           })
           .where(and(eq(behaviorInsights.id, id), eq(behaviorInsights.status, "emergent")))
           .returning(),
@@ -68,7 +68,7 @@ export const behaviorInsightsService = {
           .set({
             evidenceCount: sql`${behaviorInsights.evidenceCount} + 1`,
             lastSeen: now,
-            evidenceQuotes: sql`${behaviorInsights.evidenceQuotes} || ${evidenceQuote}`,
+            evidenceQuotes: sql`array_append(${behaviorInsights.evidenceQuotes}, ${evidenceQuote})`,
           })
           .where(eq(behaviorInsights.id, id))
           .returning(),
