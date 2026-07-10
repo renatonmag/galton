@@ -13,7 +13,7 @@ const reinforcementSchema = z.object({
 
 const discoverySchema = z.object({
   promoted: z.array(z.object({ emergentId: z.string(), evidenceQuote: z.string() })),
-  newEmergent: z.array(z.object({ text: z.string(), evidenceQuote: z.string() })),
+  newEmergent: z.array(z.object({ text: z.string(), evidenceQuote: z.string(), type: z.enum(["do", "dont"]) })),
 });
 
 const REINFORCEMENT_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
@@ -26,7 +26,8 @@ Regras:
 - Só inclua um padrão em "reinforced" se houver evidência clara dele nos comentários deste lote.
 - Para cada padrão reforçado, preencha "evidenceQuote" com uma citação do comentário que evidencia a recorrência.
 - Um mesmo padrão não deve aparecer mais de uma vez em "reinforced", mesmo que apareça em múltiplos comentários do lote.
-- Se nenhum dos padrões da lista aparecer nos comentários, defina "noticedNothing" como true e deixe "reinforced" vazio.`;
+- Se nenhum dos padrões da lista aparecer nos comentários, defina "noticedNothing" como true e deixe "reinforced" vazio.
+- Existem dois tipos de padrão: "do": comportamento positivo, uma força ou acerto do trader que deve ser mantido. "dont": erro, vício ou comportamento negativo que o trader deveria corrigir.`;
 
 const DISCOVERY_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
 
@@ -36,6 +37,11 @@ Sua tarefa, olhando apenas para os comentários deste dia:
 - Se um comentário evidenciar um padrão que já está na lista de candidatos emergentes, inclua-o em "promoted", referenciando exatamente o ID fornecido para aquele candidato — nunca invente um ID que não esteja na lista.
 - Se um comentário evidenciar um padrão que já está na lista de padrões ativos, ignore-o completamente — não o inclua em "promoted" nem em "newEmergent".
 - Se um comentário evidenciar um padrão genuinamente novo (que não corresponde a nenhum padrão ativo nem a nenhum candidato emergente), inclua-o em "newEmergent".
+
+Além disso, classifique cada padrão novo em "type":
+- "do": comportamento positivo, uma força ou acerto do trader que deve ser mantido.
+- "dont": erro, vício ou comportamento negativo que o trader deveria corrigir.
+Não misture os dois — todo item em "newEmergent" deve trazer o "type" correto.
 
 Regras:
 - Cada "text" (o próprio padrão) deve ter no máximo 1 frase sucinta e objetiva que descreva o comportamento.
@@ -94,11 +100,11 @@ export function validateDiscoveryOutput(
   emergentCandidates: { id: string; text: string }[],
   llmOutput: {
     promoted: { emergentId: string; evidenceQuote: string }[];
-    newEmergent: { text: string; evidenceQuote: string }[];
+    newEmergent: { text: string; evidenceQuote: string; type: "do" | "dont" }[];
   },
 ): {
   promoted: { id: string; evidenceQuote: string }[];
-  newEmergent: { text: string; evidenceQuote: string }[];
+  newEmergent: { text: string; evidenceQuote: string; type: "do" | "dont" }[];
 } {
   const candidateIds = new Set(emergentCandidates.map((c) => c.id));
   const seenIds = new Set<string>();
@@ -110,12 +116,12 @@ export function validateDiscoveryOutput(
   }
 
   const seenTexts = new Set<string>();
-  const newEmergent: { text: string; evidenceQuote: string }[] = [];
+  const newEmergent: { text: string; evidenceQuote: string; type: "do" | "dont" }[] = [];
   for (const n of llmOutput.newEmergent) {
     const text = n.text.trim();
     if (text.length === 0 || seenTexts.has(text)) continue;
     seenTexts.add(text);
-    newEmergent.push({ text, evidenceQuote: n.evidenceQuote });
+    newEmergent.push({ text, evidenceQuote: n.evidenceQuote, type: n.type });
   }
 
   return { promoted, newEmergent };
@@ -151,7 +157,7 @@ async function processDay(
   }
 
   let promoted: { id: string; evidenceQuote: string }[] = [];
-  let newEmergent: { text: string; evidenceQuote: string }[] = [];
+  let newEmergent: { text: string; evidenceQuote: string; type: "do" | "dont" }[] = [];
   if (day.newInsightsProcessed === null && commented.length > 0) {
     const emergentCandidates = await behaviorInsightsService.listEmergent(userId);
     const processedSessions = await sessionsService.listProcessedForDiscovery(userId);

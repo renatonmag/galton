@@ -17,6 +17,7 @@ export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
 export const resultEnum = pgEnum("result", ["open", "profit", "loss", "breakeven"]);
 export const directionEnum = pgEnum("direction", ["buy", "sell"]);
 export const behaviorInsightStatusEnum = pgEnum("behavior_insight_status", ["active", "dismissed", "emergent"]);
+export const behaviorInsightTypeEnum = pgEnum("behavior_insight_type", ["do", "dont"]);
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -84,6 +85,7 @@ export const behaviorInsights = pgTable("behavior_insights", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull(),
   text: text("text").notNull(),
+  type: behaviorInsightTypeEnum("type").notNull(),
   evidenceCount: integer("evidence_count").notNull().default(0),
   evidenceQuotes: text("evidence_quotes").array().notNull().default([]),
   firstSeen: timestamp("first_seen", { withTimezone: true }).defaultNow().notNull(),

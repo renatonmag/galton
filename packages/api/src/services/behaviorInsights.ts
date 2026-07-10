@@ -21,16 +21,17 @@ export const behaviorInsightsService = {
 
   stageEmergent: async (
     userId: string,
-    emergents: { text: string; evidenceQuote: string }[],
+    emergents: { text: string; evidenceQuote: string; type: "do" | "dont" }[],
     executor: Executor = db,
   ) => {
     if (emergents.length === 0) return [];
     return executor
       .insert(behaviorInsights)
       .values(
-        emergents.map(({ text, evidenceQuote }) => ({
+        emergents.map(({ text, evidenceQuote, type }) => ({
           userId,
           text,
+          type,
           evidenceCount: 1,
           evidenceQuotes: [evidenceQuote],
           status: "emergent" as const,
