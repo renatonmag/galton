@@ -2,7 +2,7 @@
 
 ## What We're Building
 
-A complete refactor of the trading journal app into a simple, focused flow. All strategy/setup/characteristic complexity is removed. The DB was rebuilt from scratch around `sessions` and `trade_entries`, with `voice_notes`, `user_preferences`, and `daily_reports` added afterward as the flow grew.
+A complete refactor of the trading journal app into a simple, focused flow. All strategy/setup/characteristic complexity is removed. The DB was rebuilt from scratch around `sessions` and `trade_entries`, with `voice_notes`, `user_preferences`, `daily_reports`, and `behavior_insights` added afterward as the flow grew.
 
 ## Domain Model
 
@@ -54,6 +54,8 @@ A lightweight, freestanding spoken note attached to a session — reintroduced a
 | session_id     | uuid      | FK to sessions (cascade delete)                     |
 | trade_entry_id | uuid      | Nullable FK to trade_entries (set null on delete)    |
 | transcript     | text      | Whisper transcription of the recording               |
+| coach_insight  | jsonb     | Nullable `{ text, type }` — set when the live Behavior Coach matched this utterance to an active insight (see Behavior Coach) |
+| matched_insight_id | uuid  | Nullable FK to behavior_insights (set null on delete) — which active insight the coach matched |
 | created_at     | timestamp |                                                       |
 
 ### UserPreferences
@@ -81,6 +83,41 @@ An AI-generated weekly narrative coaching summary, keyed by the day it's request
 | improvements   | jsonb   | Up to 5 `{ pattern, description, action }` points          |
 | strengths      | jsonb   | Up to 5 `{ pattern, description, whyItMatters }` points    |
 | created_at     | timestamp |                                                          |
+
+### BehaviorInsight
+
+A recurring **behavioral pattern** mined from the free-text **comments** on a user's trade entries — the trader's habits, stated in one succinct sentence. One row per pattern per user. Distinct from a DailyReport's `improvements`/`strengths`: those are per-window narrative points; a BehaviorInsight is a durable, cross-session pattern with its own confirmation lifecycle.
+
+| Field           | Type      | Notes                                                       |
+| --------------- | --------- | ----------------------------------------------------------- |
+| id              | uuid      | PK                                                          |
+| user_id         | uuid      |                                                             |
+| text            | text      | The pattern, one succinct sentence                          |
+| type            | enum      | `do` or `dont` — see below                                  |
+| status          | enum      | `emergent`, `active`, or `dismissed` — see below            |
+| evidence_count  | integer   | How many times the pattern has been sighted                 |
+| evidence_quotes | text[]    | Verbatim comment snippets cited as evidence                 |
+| first_seen      | timestamp |                                                             |
+| last_seen       | timestamp | Bumped on each sighting; drives emergent decay              |
+
+**do vs. dont** (`type`): a **do** is a positive behavior / strength to keep; a **dont** is a mistake, vice, or negative behavior to correct. Every insight is exactly one or the other, fixed when the pattern is first staged.
+
+**Status lifecycle:**
+
+- **emergent** — an *emergent candidate*: the pattern has been sighted exactly **once** (`evidence_count: 1`). Provisional; not yet shown to the user or used by the coach. A single day of comments is never enough to confirm a pattern.
+- **active** — *confirmed*: the pattern was sighted a **second time** on a different session-day, promoting it from emergent. Only active insights feed the Behavior Coach.
+- **dismissed** — reserved. Declared in the enum but not yet written or read by any code today; there is no dismiss action.
+
+**Extraction** is the umbrella process that mines insights from comments. It sweeps each eligible session-day (a session with at least one commented entry that hasn't been processed yet) and runs two independent LLM passes, each gated by its own per-session stamp so it runs at most once per session:
+
+- **Reinforcement** — re-checks the day's comments against already-**active** insights and bumps `evidence_count` on each one it sees again. Cannot create or promote insights.
+- **Discovery** — looks for patterns that are *not* yet active: it **promotes** a matching emergent candidate to active (its second sighting), or **stages** a genuinely new pattern as a fresh emergent candidate.
+
+**Emergent decay**: an emergent candidate that goes unseen for a horizon of processed sessions (currently 10) is evicted from discovery consideration, so one-off remarks don't linger as candidates forever.
+
+### Behavior Coach
+
+A **live**, in-session intervention — distinct from the after-the-fact Extraction above. When a VoiceNote is recorded, the coach matches the spoken utterance against the user's **active** insights. On a clear match to exactly one insight, it writes a short do/dont nudge onto the note (`coach_insight`) and records which insight matched (`matched_insight_id`): if the match is a **do**, it encourages; if a **dont**, it warns. No match leaves both fields null. The coach only reads active insights — it never creates, promotes, or reinforces them.
 
 ## Success Ratio Formula
 
