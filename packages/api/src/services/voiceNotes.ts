@@ -17,14 +17,27 @@ export const voiceNotesService = {
       .orderBy(voiceNotes.createdAt);
   },
 
-  create: async (sessionId: string, userId: string, transcript: string) => {
+  create: async (
+    sessionId: string,
+    userId: string,
+    transcript: string,
+    coach?: { coachInsight: { text: string; type: "do" | "dont" }; matchedInsightId: string },
+  ) => {
     const session = await db
       .select()
       .from(sessions)
       .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)));
     if (!session[0]) return null;
 
-    const rows = await db.insert(voiceNotes).values({ sessionId, transcript }).returning();
+    const rows = await db
+      .insert(voiceNotes)
+      .values({
+        sessionId,
+        transcript,
+        coachInsight: coach?.coachInsight ?? null,
+        matchedInsightId: coach?.matchedInsightId ?? null,
+      })
+      .returning();
     return rows[0];
   },
 

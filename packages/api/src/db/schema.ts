@@ -62,6 +62,10 @@ export const voiceNotes = pgTable("voice_notes", {
     .references(() => sessions.id, { onDelete: "cascade" }),
   tradeEntryId: uuid("trade_entry_id").references(() => tradeEntries.id, { onDelete: "set null" }),
   transcript: text("transcript").notNull(),
+  coachInsight: jsonb("coach_insight").$type<{ text: string; type: "do" | "dont" }>(),
+  matchedInsightId: uuid("matched_insight_id").references(() => behaviorInsights.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

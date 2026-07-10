@@ -22,9 +22,11 @@ import {
   ChevronLeft,
   Clipboard,
   ClipboardCheck,
+  Sparkles,
   StickyNote,
   SquarePen,
   Trash,
+  TriangleAlert,
   X,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
@@ -146,10 +148,39 @@ function VoiceNoteCard({
           </Button>
         )}
       </XStack>
+      {note.coachInsight && <CoachBubble insight={note.coachInsight} />}
       <Text fontSize={11} color="$color8" mt="$1.5">
         {fmtTime(note.createdAt)}
       </Text>
     </YStack>
+  );
+}
+
+function CoachBubble({ insight }: { insight: NonNullable<VoiceNote["coachInsight"]> }) {
+  const isDo = insight.type === "do";
+  const accent = isDo ? "#276749" : "#9B2C2C";
+  const background = isDo ? "#EBF5EF" : "#FBEBEB";
+  return (
+    <XStack
+      mt="$2.5"
+      gap="$2"
+      alignItems="flex-start"
+      backgroundColor={background}
+      borderRadius={10}
+      borderLeftWidth={3}
+      borderLeftColor={accent}
+      px="$3"
+      py="$2.5"
+    >
+      {isDo ? (
+        <Sparkles color={accent} size={16} style={{ marginTop: 1 }} />
+      ) : (
+        <TriangleAlert color={accent} size={16} style={{ marginTop: 1 }} />
+      )}
+      <Text flex={1} fontSize="$3.5" fontWeight="600" color={accent}>
+        {insight.text}
+      </Text>
+    </XStack>
   );
 }
 

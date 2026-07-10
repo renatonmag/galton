@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { validator } from "hono/validator";
 import { authMiddleware, type AppEnv } from "../middleware/auth.js";
+import { behaviorCoachService } from "../services/behaviorCoach.js";
 import { sessionsService } from "../services/sessions.js";
 import { tradeEntriesService } from "../services/tradeEntries.js";
 import { transcriptionService } from "../services/transcription.js";
@@ -85,7 +86,20 @@ const app = new Hono<AppEnv>()
       if (!transcript) {
         return c.json({ error: "No speech detected" }, 422);
       }
-      const voiceNote = await voiceNotesService.create(sessionId, userId, transcript);
+
+      let coach: Awaited<ReturnType<typeof behaviorCoachService.matchUtterance>> = null;
+      try {
+        coach = await behaviorCoachService.matchUtterance(userId, transcript);
+      } catch (matchErr) {
+        console.error("[behaviorCoach] match failed:", matchErr);
+      }
+
+      const voiceNote = await voiceNotesService.create(
+        sessionId,
+        userId,
+        transcript,
+        coach ?? undefined,
+      );
       if (!voiceNote) return c.json({ error: "Not found" }, 404);
       return c.json({ voiceNote }, 201);
     } catch (err) {
