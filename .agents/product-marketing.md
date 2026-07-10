@@ -46,7 +46,7 @@
 **Future-version note:** In a later iteration of the landing page, each feature deserves its own full section (verdict, no-entry win rate, voice journaling, AI coaching each expanded). The main-flow loop is the v1 primary how-it-works area that integrates all four compactly; the per-feature sections are the planned expansion once there's more to show and prove.
 
 ## Target Audience
-**Target customer:** Retail day traders (stocks/futures/forex/crypto) who over-trade and struggle with discipline — profits given back to impulsive, emotional, and revenge trades.
+**Target customer:** Retail day traders (stocks/futures/forex/crypto) who over-trade or under-trade and struggle with discipline — profits given back to impulsive, emotional, and revenge trades.
 
 **Primary use case:** Consulting their own past behavior *in real time, mid-session*, to decide whether to take the trade in front of them.
 
@@ -68,7 +68,7 @@
 **Core problem (CONFIRMED framing):** Most traders don't lose because they can't read a chart — they lose because they can't stop themselves. Impulsive, emotional, revenge trades wreck otherwise-decent strategies.
 
 **The villain framing — "not your fault, but your responsibility" (governs ALL copy):**
-Name the problem honestly as a *discipline* problem (traders respect being leveled with — don't euphemize it). But never shame the trader: it's not their fault (they're human, the pressure is real, and every journal they tried only showed up *after* the damage). It IS their responsibility to fix — and responsibility needs the right tool. This gives ownership without shame (a stoic frame: dichotomy of control — same lineage as the Galton name). NEVER use shame/blame ("stop sabotaging yourself"); NEVER excuse it away either ("it's not you, it's the situation"). Always: honest name → absolve fault → hand back agency → Galton is the instrument of that responsibility.
+Name the problem honestly as a *discipline* problem (traders respect being leveled with — don't euphemize it). But never shame the trader: it's not their fault (they're human, the pressure is real, and every journal they tried only showed up *after* the damage). It IS their responsibility to fix — and responsibility needs the right tool. This gives ownership without shame (a stoic frame: dichotomy of control — same lineage as the Galton name). NEVER use shame/blame ("stop sabotaging yourself"); NEVER excuse it away either ("it's not you, it's the situation"). Always: honest name → absolve fault → hand back agency → Galton is the instrument of that responsibility. Take back control.
 
 **Problem narrative (site-ready arc):**
 > You already know how to trade. You just can't always trust yourself to do it.
@@ -106,10 +106,6 @@ Name the problem honestly as a *discipline* problem (traders respect being level
 **Why that's better:** Discipline is the actual bottleneck. A tool that enforces it beats a tool that merely records the damage.
 
 **Why customers choose us:** It's the only journal that answers "should I take *this* trade?" using their own numbers, and the only one that proves the money they made by *not* trading.
-
-## Objection Handling — Principles
-- **R:R limitation: don't mention it proactively (DECIDED).** The "mirror, not master" frame makes it irrelevant. Keep the full rebuttal in the FAQ only, for skeptics who go looking. Calm brands say less — don't manufacture an objection casual visitors would never have.
-- **Market the behavior, not the formula (DECIDED).** The win-rate/50% threshold is a *placeholder rule* that will change. NEVER feature the literal "50%" or the specific formula as the defining mechanism — it will date the copy and invite the "arbitrary threshold" attack. Always write at the purpose altitude ("puts your own record in front of you before you act"), which stays true no matter how the underlying rule evolves.
 
 **Anti-persona:** Long-term buy-and-hold investors, algo/systematic traders who don't make discretionary in-the-moment decisions, and anyone wanting market signals/tips (Galton reflects *your* behavior, it doesn't predict markets).
 
