@@ -18,47 +18,53 @@ const discoverySchema = z.object({
 
 const REINFORCEMENT_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
 
-Você recebe uma lista de padrões de comportamento já identificados anteriormente para este trader (cada um com um ID) e um novo lote de comentários de trades.
+Você recebe uma lista de padrões de comportamento já identificados anteriormente para este trader (cada um com um ID) e um novo comentário de um único trade.
 
-Sua tarefa é verificar, para cada padrão já identificado, se ele aparece novamente nos comentários abaixo — não invente padrões novos, não avalie nada que não esteja na lista fornecida.
+Sua tarefa é verificar, para cada padrão já identificado, se ele aparece novamente neste comentário — não invente padrões novos, não avalie nada que não esteja na lista fornecida.
 
 Regras:
-- Só inclua um padrão em "reinforced" se houver evidência clara dele nos comentários deste lote.
+- Só inclua um padrão em "reinforced" se houver evidência clara dele neste comentário.
 - Para cada padrão reforçado, preencha "evidenceQuote" com uma citação do comentário que evidencia a recorrência.
-- Um mesmo padrão não deve aparecer mais de uma vez em "reinforced", mesmo que apareça em múltiplos comentários do lote.
-- Se nenhum dos padrões da lista aparecer nos comentários, defina "noticedNothing" como true e deixe "reinforced" vazio.
+- Um mesmo padrão não deve aparecer mais de uma vez em "reinforced", mesmo que seja mencionado mais de uma vez neste comentário.
+- Se nenhum dos padrões da lista aparecer neste comentário, defina "noticedNothing" como true e deixe "reinforced" vazio.
 - Existem dois tipos de padrão: "do": comportamento positivo, uma força ou acerto do trader que deve ser mantido. "dont": erro, vício ou comportamento negativo que o trader deveria corrigir.`;
 
-const DISCOVERY_SYSTEM_PROMPT = `Você é um analista de comportamento de traders.
+const DISCOVERY_SYSTEM_PROMPT = `Este é um comentário de um diário de trade. Extraia deste texto os principais padrões comportamentais.
 
-Você recebe três blocos de informação: (1) padrões já ativos e confirmados para este trader — NÃO os recrie nem os reporte novamente, eles já são tratados por outro processo; (2) candidatos emergentes — padrões observados uma única vez até agora, cada um com um ID; e (3) os comentários do diario de trades de UM único dia.
+Um padrão é um pensamento completo, com causa e consequência. Não repita padrões semelhantes.
 
-Sua tarefa, olhando apenas para os comentários deste dia:
-- Se um comentário evidenciar um padrão que já está na lista de candidatos emergentes, inclua-o em "promoted", referenciando exatamente o ID fornecido para aquele candidato — nunca invente um ID que não esteja na lista.
-- Se um comentário evidenciar um padrão que já está na lista de padrões ativos, ignore-o completamente — não o inclua em "promoted" nem em "newEmergent".
-- Se um comentário evidenciar um padrão genuinamente novo (que não corresponde a nenhum padrão ativo nem a nenhum candidato emergente), inclua-o em "newEmergent".
+Classifique cada padrão em "type":
+- "do": comportamento positivo, uma força ou acerto do trader que deve ser mantido.
+- "dont": erro, vício ou comportamento negativo que o trader deveria corrigir.
+
+Regras:
+- Cada "text" deve ter no máximo 1 frase sucinta e objetiva que descreva o comportamento, incluindo causa e consequência.
+- Para cada padrão, preencha "evidenceQuotes" com uma ou mais citações literais do comentário que evidenciam o padrão.
+- Não repita padrões semelhantes — cada padrão deve ser distinto.
+- Se nenhum padrão novo ou candidato reconhecido aparecer neste comentário, deixe ambas as listas vazias.
+
+Você recebe até quatro blocos de informação: (1) padrões já ativos e confirmados para este trader — NÃO os recrie nem os reporte novamente, eles já são tratados por outro processo; (2) candidatos emergentes — padrões observados uma única vez até agora, cada um com um ID; (3) padrões já levantados hoje em comentários anteriores deste mesmo dia — já foram registrados, trate-os como já resolvidos; e (4) o comentário do diario de trades de UM único trade.
+
+Sua tarefa, olhando apenas para este comentário:
+- Se o comentário evidenciar um padrão que já está na lista de candidatos emergentes, inclua-o em "promoted", referenciando exatamente o ID fornecido para aquele candidato — nunca invente um ID que não esteja na lista.
+- Se o comentário evidenciar um padrão que já está na lista de padrões ativos, ignore-o completamente — não o inclua em "promoted" nem em "newEmergent".
+- Se o comentário evidenciar um padrão que já está na lista de padrões já levantados hoje, ignore-o completamente — não o inclua em "promoted" nem em "newEmergent".
+- Se o comentário evidenciar um padrão genuinamente novo (que não corresponde a nenhum padrão ativo, nem a nenhum candidato emergente, nem a nenhum padrão já levantado hoje), inclua-o em "newEmergent".
 
 Além disso, classifique cada padrão novo em "type":
 - "do": comportamento positivo, uma força ou acerto do trader que deve ser mantido.
 - "dont": erro, vício ou comportamento negativo que o trader deveria corrigir.
 Não misture os dois — todo item em "newEmergent" deve trazer o "type" correto.
 
-Regras:
-- Cada "text" (o próprio padrão) deve ter no máximo 1 frase sucinta e objetiva que descreva o comportamento.
-- Um mesmo padrão não deve aparecer mais de uma vez em "promoted" nem em "newEmergent", mesmo que apareça em múltiplos comentários deste dia.
-- Para cada item em "promoted" e em "newEmergent", preencha "evidenceQuote" com uma citação de um comentário deste dia que evidencia o padrão.
-- Um único dia de comentários nunca é evidência suficiente para confirmar um padrão como definitivo — apenas classifique corretamente; a confirmação entre dias é feita automaticamente pelo sistema.
-- Se nenhum padrão novo ou candidato reconhecido aparecer nos comentários deste dia, deixe ambas as listas vazias.
-
 Exemplos de padrões bem formulados:
-- Entrar em trades atrasado devido à hesitação, resultando em piores stops e risco-retorno
-- Colocar stops muito apertados (no ou abaixo do stop técnico), sendo tirado de trades que depois funcionaram
-- Leitura precisa da ação do preço e da estrutura de barras (barras de sinal, barras especiais, reversões de duas barras, setups de reversão à média)
-- Emoções guiando as decisões, levando à passividade no momento da entrada
-- Não reentrar após ser stopado, perdendo o sinal válido subsequente`;
+- Entrou pelo espaço disponível, mas reconhece que o timing foi ruim porque a reversão já estava clara três barras antes.
+- Percebeu sinais técnicos de confirmação antes da entrada, indicando que deveria ter antecipado o trade no ponto mais forte da lateralidade.
+- Deixou de aproveitar uma entrada tardia ainda válida, e isso reduziu sua participação em um movimento que seguiu forte.
+- Entrou impulsivamente em uma barra climática muito grande, o que levou a um trade exaustivo e encerrado em break even.
+- Reconheceu a fraqueza do movimento de alta e saiu da operação, evitando tomar stop.`;
 
-function serializeComments(comments: string[]): string {
-  return comments.map((text, i) => `Comentário ${i + 1}: "${text}"`).join("\n\n");
+function serializeComment(comment: string): string {
+  return `Comentário: "${comment}"`;
 }
 
 function serializeInsightCandidates(insights: { id: string; text: string }[]): string {
@@ -127,16 +133,50 @@ export function validateDiscoveryOutput(
   return { promoted, newEmergent };
 }
 
+export type ReinforcementInput = {
+  comment: string;
+  activePatterns: { id: string; text: string }[];
+};
+
+export async function runReinforcement(
+  input: ReinforcementInput,
+): Promise<{ reinforced: { id: string; evidenceQuote: string }[] }> {
+  const { object } = await generateObject({
+    model: openai("gpt-5.4-mini"),
+    schema: reinforcementSchema,
+    system: REINFORCEMENT_SYSTEM_PROMPT,
+    prompt: `Padrões conhecidos:\n${serializeInsightCandidates(input.activePatterns)}\n\n${serializeComment(
+      input.comment,
+    )}`,
+  });
+  const seen = new Set<string>();
+  const reinforced: { id: string; evidenceQuote: string }[] = [];
+  for (const r of object.reinforced) {
+    if (seen.has(r.insightId)) continue;
+    seen.add(r.insightId);
+    reinforced.push({ id: r.insightId, evidenceQuote: r.evidenceQuote });
+  }
+  return { reinforced };
+}
+
 export type DiscoveryInput = {
-  comments: string[];
+  comment: string;
   activePatterns: { id: string; text: string }[];
   emergentCandidates: { id: string; text: string }[];
+  alreadySurfacedToday?: string[];
 };
 
 export async function runDiscovery(input: DiscoveryInput): Promise<{
   promoted: { emergentId: string; evidenceQuote: string }[];
   newEmergent: { text: string; evidenceQuote: string; type: "do" | "dont" }[];
 }> {
+  const alreadySurfacedToday = input.alreadySurfacedToday ?? [];
+  const surfacedSection =
+    alreadySurfacedToday.length > 0
+      ? `Padrões já levantados hoje (NÃO repetir, nem em promoted nem em newEmergent):\n${alreadySurfacedToday
+          .map((text) => `- ${text}`)
+          .join("\n")}\n\n`
+      : "";
   const { object } = await generateObject({
     model: openai("gpt-5.4-mini"),
     schema: discoverySchema,
@@ -144,7 +184,8 @@ export async function runDiscovery(input: DiscoveryInput): Promise<{
     prompt:
       `Padrões ativos (não recriar):\n${serializeInsightCandidates(input.activePatterns)}\n\n` +
       `Candidatos emergentes:\n${serializeInsightCandidates(input.emergentCandidates)}\n\n` +
-      `${serializeComments(input.comments)}`,
+      surfacedSection +
+      `${serializeComment(input.comment)}`,
   });
   return object;
 }
@@ -162,20 +203,17 @@ async function processDay(
 
   let reinforced: { id: string; evidenceQuote: string }[] = [];
   if (day.reinforceProcessed === null && activeInsights.length > 0 && commented.length > 0) {
-    const { object } = await generateObject({
-      model: openai("gpt-5.4-mini"),
-      schema: reinforcementSchema,
-      system: REINFORCEMENT_SYSTEM_PROMPT,
-      prompt: `Padrões conhecidos:\n${serializeInsightCandidates(activeInsights)}\n\n${serializeComments(
-        commented.map((e) => e.comment as string),
-      )}`,
+    const perComment = await Promise.all(
+      commented.map((e) => runReinforcement({ comment: e.comment as string, activePatterns: activeInsights })),
+    );
+    // Suppress within-day repeats: an active pattern evidenced in several comments of the
+    // same day counts once (keeping the first quote), matching the old batched behavior.
+    const seenIds = new Set<string>();
+    reinforced = perComment.flatMap((r) => r.reinforced).filter((r) => {
+      if (seenIds.has(r.id)) return false;
+      seenIds.add(r.id);
+      return true;
     });
-    const seen = new Set<string>();
-    for (const r of object.reinforced) {
-      if (seen.has(r.insightId)) continue;
-      seen.add(r.insightId);
-      reinforced.push({ id: r.insightId, evidenceQuote: r.evidenceQuote });
-    }
   }
 
   let promoted: { id: string; evidenceQuote: string }[] = [];
@@ -184,13 +222,37 @@ async function processDay(
     const emergentCandidates = await behaviorInsightsService.listEmergent(userId);
     const processedSessions = await sessionsService.listProcessedForDiscovery(userId);
     const { inHorizon } = filterEmergentByHorizon(emergentCandidates, processedSessions);
+    const candidateTextById = new Map(inHorizon.map((c) => [c.id, c.text]));
 
-    const object = await runDiscovery({
-      comments: commented.map((e) => e.comment as string),
-      activePatterns: activeInsights,
-      emergentCandidates: inHorizon,
-    });
-    ({ promoted, newEmergent } = validateDiscoveryOutput(inHorizon, object));
+    // Process comments sequentially, carrying forward the patterns surfaced earlier today so
+    // the discovery LLM suppresses within-day repeats (semantic, not just exact-string).
+    // Cross-day confirmation is untouched: carried-forward patterns are an ignore-list, never
+    // promotable emergent candidates.
+    const surfacedToday: string[] = [];
+    const promotedIds = new Set<string>();
+    const newEmergentTexts = new Set<string>();
+    for (const e of commented) {
+      const object = await runDiscovery({
+        comment: e.comment as string,
+        activePatterns: activeInsights,
+        emergentCandidates: inHorizon,
+        alreadySurfacedToday: surfacedToday,
+      });
+      const validated = validateDiscoveryOutput(inHorizon, object);
+      for (const p of validated.promoted) {
+        if (promotedIds.has(p.id)) continue;
+        promotedIds.add(p.id);
+        promoted.push(p);
+        const text = candidateTextById.get(p.id);
+        if (text) surfacedToday.push(text);
+      }
+      for (const n of validated.newEmergent) {
+        if (newEmergentTexts.has(n.text)) continue;
+        newEmergentTexts.add(n.text);
+        newEmergent.push(n);
+        surfacedToday.push(n.text);
+      }
+    }
   }
 
   await db.transaction(async (tx) => {

@@ -28,7 +28,7 @@ function surfacedTexts(
 
 async function gradeCase(evalCase: DiscoveryEvalCase): Promise<CaseResult> {
   const output = await runDiscovery({
-    comments: evalCase.comments,
+    comment: evalCase.comments[0],
     activePatterns: evalCase.activePatterns,
     emergentCandidates: evalCase.emergentCandidates,
   });
