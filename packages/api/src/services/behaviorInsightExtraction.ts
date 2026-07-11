@@ -127,6 +127,28 @@ export function validateDiscoveryOutput(
   return { promoted, newEmergent };
 }
 
+export type DiscoveryInput = {
+  comments: string[];
+  activePatterns: { id: string; text: string }[];
+  emergentCandidates: { id: string; text: string }[];
+};
+
+export async function runDiscovery(input: DiscoveryInput): Promise<{
+  promoted: { emergentId: string; evidenceQuote: string }[];
+  newEmergent: { text: string; evidenceQuote: string; type: "do" | "dont" }[];
+}> {
+  const { object } = await generateObject({
+    model: openai("gpt-5.4-mini"),
+    schema: discoverySchema,
+    system: DISCOVERY_SYSTEM_PROMPT,
+    prompt:
+      `Padrões ativos (não recriar):\n${serializeInsightCandidates(input.activePatterns)}\n\n` +
+      `Candidatos emergentes:\n${serializeInsightCandidates(input.emergentCandidates)}\n\n` +
+      `${serializeComments(input.comments)}`,
+  });
+  return object;
+}
+
 type EligibleDay = Awaited<ReturnType<typeof sessionsService.listEligibleForForwardPass>>[number];
 
 async function processDay(
@@ -163,13 +185,10 @@ async function processDay(
     const processedSessions = await sessionsService.listProcessedForDiscovery(userId);
     const { inHorizon } = filterEmergentByHorizon(emergentCandidates, processedSessions);
 
-    const { object } = await generateObject({
-      model: openai("gpt-5.4-mini"),
-      schema: discoverySchema,
-      system: DISCOVERY_SYSTEM_PROMPT,
-      prompt: `Padrões ativos (não recriar):\n${serializeInsightCandidates(activeInsights)}\n\nCandidatos emergentes:\n${serializeInsightCandidates(
-        inHorizon,
-      )}\n\n${serializeComments(commented.map((e) => e.comment as string))}`,
+    const object = await runDiscovery({
+      comments: commented.map((e) => e.comment as string),
+      activePatterns: activeInsights,
+      emergentCandidates: inHorizon,
     });
     ({ promoted, newEmergent } = validateDiscoveryOutput(inHorizon, object));
   }
