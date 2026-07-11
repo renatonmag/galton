@@ -1,0 +1,680 @@
+[
+  {
+    "comment": "Entrei no trade porque havia espaço ainda, mas este trade deveria ter acontecido ou poderia ter acontecido três barras antes, no alto da lateralidade, que já havia mostrado reversão e uma boa barra de baixo, uma boa barra de sinal, uma boa barra especial.",
+    "expectedBehaviors": [
+      {
+        "text": "Entrou pelo espaço disponível, mas reconhece que o timing foi ruim porque a reversão já estava clara três barras antes.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Entrei no trade porque havia espaço ainda",
+          "este trade deveria ter acontecido ou poderia ter acontecido três barras antes",
+          "no alto da lateralidade, que já havia mostrado reversão"
+        ]
+      },
+      {
+        "text": "Percebeu sinais técnicos de confirmação antes da entrada, indicando que deveria ter antecipado o trade no ponto mais forte da lateralidade.",
+        "type": "do",
+        "evidenceQuotes": [
+          "já havia mostrado reversão",
+          "uma boa barra de baixo, uma boa barra de sinal, uma boa barra especial"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Este trade foi... eu vi que o mercado estava forte e que podia ir mais pra cima. O pullback estava pequeno. Havia um gap com o último ponto de rompimento e estava na máxima do dia, mas havia pressão compradora. Eu hesitei em entrar e o mercado andou bastante pra cima ainda. Eu poderia ter comprado que o stop seria curtíssimo, não pegaria no stop e eu poderia ter comprado na quarta barra depois do sinal. O stop não teria me preocupado ao longo da operação.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconheceu um cenário de força compradora e continuação, o que indicava boa probabilidade de alta.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu vi que o mercado estava forte e que podia ir mais pra cima",
+          "havia pressão compradora"
+        ]
+      },
+      {
+        "text": "Percebeu um pullback pequeno e um stop curto, o que mostrava uma entrada favorável e controlada.",
+        "type": "do",
+        "evidenceQuotes": [
+          "O pullback estava pequeno",
+          "Eu poderia ter comprado que o stop seria curtíssimo"
+        ]
+      },
+      {
+        "text": "Hesitou em entrar apesar do sinal favorável, e isso fez perder a alta que continuou depois.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Eu hesitei em entrar e o mercado andou bastante pra cima ainda"
+        ]
+      },
+      {
+        "text": "Deixou de aproveitar uma entrada tardia ainda válida, e isso reduziu sua participação em um movimento que seguiu forte.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "eu poderia ter comprado na quarta barra depois do sinal",
+          "o mercado andou bastante pra cima ainda"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Era payroll, então eu fiquei de fora até que o payroll já tivesse acontecido. Deu uma grande barra e aí eu entrei nessa grande barra, uma enorme barra, bem climática, e saiu no break even. Foi um movimento exaustivo.",
+    "expectedBehaviors": [
+      {
+        "text": "Aguardou a divulgação do payroll para evitar operar em momento de alta incerteza.",
+        "type": "do",
+        "evidenceQuotes": [
+          "fiquei de fora até que o payroll já tivesse acontecido"
+        ]
+      },
+      {
+        "text": "Entrou impulsivamente em uma barra climática muito grande, o que levou a um trade exaustivo e encerrado em break even.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "entrei nessa grande barra, uma enorme barra, bem climática",
+          "Foi um movimento exaustivo.",
+          "saiu no break even"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Eu vi a reversão do movimento climático anterior. Foi até a média e deixou uma sombra grande. Dos barras ruins de alta. Porém, a reversão foi mais forte. Eu achei que ia dar um trade. Mas no meio da operação eu vi que o movimento de sinal estava fraco. As barras de alta estavam fracas, então eu saí. E realmente teria pegado o stop. Mas a próxima entrada foi uma barra boa de alta que eu não entrei. Mas foi um sinal positivo que daria um trade.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconheceu a fraqueza do movimento de alta e saiu da operação, evitando tomar stop.",
+        "type": "do",
+        "evidenceQuotes": [
+          "no meio da operação eu vi que o movimento de sinal estava fraco",
+          "As barras de alta estavam fracas, então eu saí",
+          "teria pegado o stop"
+        ]
+      },
+      {
+        "text": "Deixou de entrar em uma barra boa de alta que apresentava sinal positivo e perdeu a oportunidade de um trade.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "a próxima entrada foi uma barra boa de alta que eu não entrei",
+          "foi um sinal positivo que daria um trade"
+        ]
+      },
+      {
+        "text": "Leu a reversão anterior como uma possível entrada porque o movimento voltou até a média e deixou sombra grande.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Eu vi a reversão do movimento climático anterior",
+          "Foi até a média e deixou uma sombra grande"
+        ]
+      },
+      {
+        "text": "Confiou demais na reversão inicial apesar de as barras de alta serem ruins, o que quase levou ao stop.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Dos barras ruins de alta",
+          "Mas a reversão foi mais forte",
+          "teria pegado o stop"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Foi uma boa entrada, no ponto correto, e foi uma boa saída, porque o mercado começou a ficar muito lento e fazer repetidas tentativas de alta, formando uma cunha, que foi confirmada logo depois com uma barra de reversão de alta Boa!",
+    "expectedBehaviors": [
+      {
+        "text": "Entrar no ponto correto e sair quando o mercado perde força melhora a qualidade do trade.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Foi uma boa entrada, no ponto correto",
+          "foi uma boa saída, porque o mercado começou a ficar muito lento"
+        ]
+      },
+      {
+        "text": "Reconhecer uma cunha formada por tentativas repetidas de alta ajuda a identificar a reversão com antecedência.",
+        "type": "do",
+        "evidenceQuotes": [
+          "fazer repetidas tentativas de alta, formando uma cunha",
+          "que foi confirmada logo depois com uma barra de reversão de alta"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Boa barra de sinal, uma barra de tendência forte, diria que uma barra especial, porque foi a melhor barra de baixa, foi a melhor barra de alta, aliás, das últimas 12 barras, região da média, e já havia sido um repique anterior, e novamente foi a média, e na segunda barra, que passou, fechou abaixo da média, já voltou a fechar acima da média de novo. Boa barra de sinal.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconhece barras de sinal fortes e usa a região da média como contexto para validar a entrada, o que aumenta a qualidade da leitura do mercado.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Boa barra de sinal",
+          "uma barra de tendência forte",
+          "uma barra especial",
+          "foi a melhor barra de baixa, foi a melhor barra de alta, aliás, das últimas 12 barras",
+          "região da média"
+        ]
+      },
+      {
+        "text": "Observa a reação do preço após um repique e a retomada acima da média, o que reforça a confirmação da força compradora.",
+        "type": "do",
+        "evidenceQuotes": [
+          "já havia sido um repique anterior",
+          "e novamente foi a média",
+          "fechou abaixo da média, já voltou a fechar acima da média de novo"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Esse trade foi interessante porque foi a segunda tentativa de reversão e eu identifiquei perfeitamente porque deu um fundo, um topo de reversão. Três barras bem fortes de reversão. Tinha que continuar caindo ou pelo menos poderia continuar caindo. Porém, eu coloquei o stop abaixo do stop técnico e foi justamente por isso que eu saí. Saiu do stop e eu não entrei de novo e ele caiu mais um tanto. Se o stop tivesse 50 pontos acima não teria pegado e eu teria surfado uma operação boa.",
+    "expectedBehaviors": [
+      {
+        "text": "Identificou corretamente uma segunda tentativa de reversão e um fundo/topo de reversão, o que ajudou a antecipar a continuidade da queda.",
+        "type": "do",
+        "evidenceQuotes": [
+          "foi a segunda tentativa de reversão",
+          "eu identifiquei perfeitamente porque deu um fundo, um topo de reversão",
+          "Três barras bem fortes de reversão"
+        ]
+      },
+      {
+        "text": "Colocou o stop abaixo do nível técnico e, por isso, foi estopado antes de a queda continuar.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "eu coloquei o stop abaixo do stop técnico",
+          "foi justamente por isso que eu saí",
+          "Saiu do stop e eu não entrei de novo e ele caiu mais um tanto"
+        ]
+      },
+      {
+        "text": "Não voltou a entrar depois do stop, perdendo a continuação do movimento a favor.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Saiu do stop e eu não entrei de novo",
+          "ele caiu mais um tanto"
+        ]
+      },
+      {
+        "text": "Percebeu que um stop mais folgado teria evitado a saída prematura e permitido aproveitar a operação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Se o stop tivesse 50 pontos acima não teria pegado",
+          "eu teria surfado uma operação boa"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Por um breve momento eu achei que ia reverter, mas eu percebi que pela formação do contexto a pressão de baixo estava mais forte, então eu saí rapidamente da operação e eu estava correto.",
+    "expectedBehaviors": [
+      {
+        "text": "Quando a pressão contrária estava mais forte, eu saí rapidamente da operação e evitei ficar preso em uma reversão improvável.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu percebi que pela formação do contexto a pressão de baixo estava mais forte",
+          "então eu saí rapidamente da operação",
+          "eu estava correto"
+        ]
+      },
+      {
+        "text": "Eu considerei uma possível reversão, mas ajustei a leitura ao contexto e priorizei a saída antes que o cenário piorasse.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Por um breve momento eu achei que ia reverter",
+          "eu percebi que pela formação do contexto a pressão de baixo estava mais forte"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Entrei num trade que eu já deveria ter entrado duas barras antes e muitos pontos abaixo. O trade estava alto, porém a formação estava forte, de alta. Eu poderia ter saído desse trade, visto que o topo ficou rejeitando várias vezes. Na verdade, eu poderia ter entrado de forma contrária, porque deu um sinal bom, contrário, com duas barras de confirmação, numa região de resistência.",
+    "expectedBehaviors": [
+      {
+        "text": "Demorei para entrar e perdi um ponto de entrada mais favorável, o que me fez assumir um trade em preço pior.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Entrei num trade que eu já deveria ter entrado duas barras antes e muitos pontos abaixo."
+        ]
+      },
+      {
+        "text": "Segui comprado apesar do trade já estar esticado, mesmo com a formação ainda forte de alta.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "O trade estava alto, porém a formação estava forte, de alta."
+        ]
+      },
+      {
+        "text": "Não saí quando o topo mostrou rejeição repetida, o que me fez manter uma posição com sinal de enfraquecimento.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Eu poderia ter saído desse trade, visto que o topo ficou rejeitando várias vezes."
+        ]
+      },
+      {
+        "text": "Deixei de operar na direção contrária após um sinal bom com duas confirmações em resistência, o que me fez perder uma entrada mais alinhada ao contexto.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Na verdade, eu poderia ter entrado de forma contrária, porque deu um sinal bom, contrário, com duas barras de confirmação, numa região de resistência."
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Essa operação foi bem feita porque eu esperei uma pressão compradora acontecer e a barra romper a máxima da barra anterior. Eu comprei porque havia muita força depois de uma cunha e um comprimento da linha de tendência desta cunha. Eu poderia ter entrado duas barras antes que ainda seria uma boa operação e melhoraria o risco-retorno e me daria mais lucro, mas foi uma operação de R$ 150,00.",
+    "expectedBehaviors": [
+      {
+        "text": "Aguardar confirmação de pressão compradora e rompimento da máxima anterior levou a uma entrada bem fundamentada.",
+        "type": "do",
+        "evidenceQuotes": [
+          "esperei uma pressão compradora acontecer",
+          "a barra romper a máxima da barra anterior"
+        ]
+      },
+      {
+        "text": "Reconhecer força após uma cunha com linha de tendência comprida ajudou a justificar a compra.",
+        "type": "do",
+        "evidenceQuotes": [
+          "havia muita força depois de uma cunha",
+          "um comprimento da linha de tendência desta cunha"
+        ]
+      },
+      {
+        "text": "Perceber que a entrada poderia ter sido feita duas barras antes indica oportunidade de melhorar o risco-retorno e o lucro.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Eu poderia ter entrado duas barras antes",
+          "melhoraria o risco-retorno e me daria mais lucro"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Eu percebi que o mercado estava muito forte, a perna anterior, algumas barras anteriores haviam tido um rompimento muito forte, um pull back raso, muito pequeno, cuja barra, de uma barra, que reverteu, voltou a subir logo em seguida, formando um micro-triângulo, uma inside-inside barra, e rompeu. E eu saí no topo do último movimento, onde era o alvo, e realmente foi o alvo.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconheceu a força do mercado e entrou em sintonia com a continuação da tendência, o que permitiu sair no alvo correto.",
+        "type": "do",
+        "evidenceQuotes": [
+          "o mercado estava muito forte",
+          "e realmente foi o alvo"
+        ]
+      },
+      {
+        "text": "Identificou um pullback raso após um rompimento forte e usou essa leitura para projetar a continuidade da alta.",
+        "type": "do",
+        "evidenceQuotes": [
+          "algumas barras anteriores haviam tido um rompimento muito forte, um pull back raso, muito pequeno",
+          "voltou a subir logo em seguida"
+        ]
+      },
+      {
+        "text": "Leu a formação de compressão antes do rompimento, o que aumentou a confiança na continuação do movimento.",
+        "type": "do",
+        "evidenceQuotes": [
+          "formando um micro-triângulo, uma inside-inside barra, e rompeu"
+        ]
+      },
+      {
+        "text": "Realizou a saída no alvo do último movimento, o que evitou devolver ganho e mostrou disciplina no gerenciamento da operação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu saí no topo do último movimento, onde era o alvo"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Foi uma operação que eu vi que ia dar o trade bem no começo do dia, pelo formato das duas primeiras barras, a primeira barra foi de alta e a segunda teve urgência e ficou sustentando a barra de alta, então foi um bom sinal.\n\nO trade eu vi quando ele começou, e se eu tivesse entrado nele, teria prevenido que eu entrasse mais tarde, com um stop mais caro, e a operação teria sido um break even ao invés do stop que foi.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconhece o padrão logo no início e isso permitiria entrar mais cedo, evitando um stop mais caro depois.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu vi que ia dar o trade bem no começo do dia",
+          "O trade eu vi quando ele começou",
+          "teria prevenido que eu entrasse mais tarde, com um stop mais caro"
+        ]
+      },
+      {
+        "text": "Usa a leitura das primeiras barras para confirmar a qualidade da operação e isso gera um bom sinal de entrada.",
+        "type": "do",
+        "evidenceQuotes": [
+          "pelo formato das duas primeiras barras",
+          "a primeira barra foi de alta e a segunda teve urgência e ficou sustentando a barra de alta",
+          "então foi um bom sinal"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Este trade eu vi ele acontecer. Eu havia acabado de sair no zero a zero de um trade de compra e este trade era uma venda. Eu deixei que as emoções me controlassem e para não sentir nada, para não sentir nenhuma emoção mais forte, eu fiquei passivo perante a entrada, mas foi um trade de retorno à média. Vinha de uma grande perna de baixa com força, um pullback até a média com uma formação clássica de uma barra que fechou acima da média e a barra seguinte fechando abaixo da média novamente numa reversão de duas barras. A barra de baixa que fechou abaixo da média foi uma barra forte, deixou um pouco de pavio inferior, mas fechou abaixo da metade. Era um trade bom de fazer e realmente deu certo.",
+    "expectedBehaviors": [
+      {
+        "text": "Quando percebe um setup bom de retorno à média após uma perna forte, deve agir com convicção em vez de ficar passivo por emoção.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu fiquei passivo perante a entrada",
+          "foi um trade de retorno à média",
+          "Era um trade bom de fazer e realmente deu certo"
+        ]
+      },
+      {
+        "text": "Deixar as emoções controlarem leva à passividade na entrada e faz perder um trade correto.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Eu deixei que as emoções me controlassem",
+          "para não sentir nada, para não sentir nenhuma emoção mais forte, eu fiquei passivo perante a entrada"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Esta operação me tirou por má sorte, não por uma entrada ruim. Eu tomei uma violinada. Porém, eu já deveria ter imaginado que operações compradas neste dia não seriam a melhor opção, pois o mercado já havia deixado uma perna lenta, onde os compradores já haviam perdido o interesse em fazer o mercado voltar para cima. Esta operação foi um impulso curto para cima que falhou e depois voltou a cair, porque já havia movimento de baixa anterior.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconheceu o contexto de baixa anterior e que compras naquele dia tinham menor chance de dar certo.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu já deveria ter imaginado que operações compradas neste dia não seriam a melhor opção",
+          "já havia movimento de baixa anterior"
+        ]
+      },
+      {
+        "text": "Desconsiderou a qualidade da entrada e atribuiu a perda à sorte, o que pode impedir a correção do erro.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "me tirou por má sorte, não por uma entrada ruim",
+          "não por uma entrada ruim"
+        ]
+      },
+      {
+        "text": "Entrou comprado contra um mercado que já mostrava perda de interesse dos compradores e isso aumentou a chance de falha.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "o mercado já havia deixado uma perna lenta",
+          "os compradores já haviam perdido o interesse em fazer o mercado voltar para cima"
+        ]
+      },
+      {
+        "text": "Ignorou que o impulso de alta era curto e falhou, fazendo o preço retomar a queda.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Esta operação foi um impulso curto para cima que falhou e depois voltou a cair",
+          "porque já havia movimento de baixa anterior"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Este trade foi um trade bem observado. O mercado já havia caído num spike em channel de baixa. Eu vi que ele começou a dar grandes barras de alta e essas barras de alta começaram a ficar maiores, indicando que havia força compradora. Porém, os candles deixavam no final, quando eles fechavam, sombra superior. Depois da terceira vez que isso aconteceu, formou uma grande barra de alta que fechou próximo na máxima, muito maior do que todas as outras barras anteriores. Era uma barra especial. Então eu comprei nessa barra e a barra seguinte realmente foi a confirmação porque deu continuação em mais uma grande barra de alta. Porém, o trade saiu no zero a zero porque a barra seguinte fechou uma forte barra de baixa, formando um padrão clássico de retorno à média em que somente uma barra fechou acima da média e a barra seguinte já voltou a fechar abaixo da média, formando uma segunda entrada na direção contrária do trade que eu entrei. Uma venda, formou uma venda.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconhece a força compradora quando as barras de alta aumentam e entra comprado na barra especial, capturando a confirmação da continuação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Eu vi que ele começou a dar grandes barras de alta e essas barras de alta começaram a ficar maiores, indicando que havia força compradora.",
+          "Era uma barra especial. Então eu comprei nessa barra e a barra seguinte realmente foi a confirmação porque deu continuação em mais uma grande barra de alta."
+        ]
+      },
+      {
+        "text": "Percebe a mudança de contexto quando surge sombra superior repetida e evita insistir na compra diante do sinal de exaustão.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Porém, os candles deixavam no final, quando eles fechavam, sombra superior.",
+          "Depois da terceira vez que isso aconteceu, formou uma grande barra de alta que fechou próximo na máxima"
+        ]
+      },
+      {
+        "text": "Identifica que a sequência seguinte formou retorno à média e, por isso, a reversão contrária anulou o trade de compra.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Porém, o trade saiu no zero a zero porque a barra seguinte fechou uma forte barra de baixa, formando um padrão clássico de retorno à média",
+          "Uma venda, formou uma venda."
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Este primeiro trade do dia, a primeira barra foi bem forte. Porém, estava abaixo da média com uma leve tendência de baixa anterior. E a primeira barra de uma hora foi na média móvel, por baixo, sentindo uma resistência. Eu deveria ter esperado, porque é clássico isso acontecer, de a primeira barra ou alguma barra tocar na média móvel de uma hora, com a média móvel inclinada para baixo e ser apenas uma resistência. Ou seja, no resultado final não rompeu e eu fiz uma operação tardia, pois eu já deveria ter entrado nela, porque eu vi a operação acontecendo na primeira barra, mas eu entrei na terceira e me estopou. Porque realmente era como de se esperar que fosse sentir a resistência numa hora. Tanto que a próxima barra de uma hora foi uma barra de baixa.",
+    "expectedBehaviors": [
+      {
+        "text": "Esperar a confirmação da resistência na média móvel de 1 hora evita entradas tardias e stop por entrar depois do movimento já ter começado.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Eu deveria ter esperado",
+          "porque é clássico isso acontecer, de a primeira barra ou alguma barra tocar na média móvel de uma hora",
+          "eu já deveria ter entrado nela, porque eu vi a operação acontecendo na primeira barra, mas eu entrei na terceira e me estopou"
+        ]
+      },
+      {
+        "text": "Reconhecer o contexto de tendência de baixa e média inclinada para baixo ajuda a identificar quando a média móvel tende a atuar como resistência.",
+        "type": "do",
+        "evidenceQuotes": [
+          "estava abaixo da média com uma leve tendência de baixa anterior",
+          "com a média móvel inclinada para baixo e ser apenas uma resistência",
+          "era como de se esperar que fosse sentir a resistência numa hora"
+        ]
+      },
+      {
+        "text": "Entrar tarde em um setup já iniciado aumenta a chance de estopar mesmo quando a leitura estava correta.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "eu vi a operação acontecendo na primeira barra, mas eu entrei na terceira e me estopou",
+          "no resultado final não rompeu e eu fiz uma operação tardia"
+        ]
+      },
+      {
+        "text": "Observar a reação da primeira barra na média de 1 hora pode antecipar que a pressão vendedora deve continuar na barra seguinte.",
+        "type": "do",
+        "evidenceQuotes": [
+          "a primeira barra de uma hora foi na média móvel, por baixo, sentindo uma resistência",
+          "Tanto que a próxima barra de uma hora foi uma barra de baixa"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Essa segunda entrada, eu deveria ter aprendido a lição no primeiro trade. Porém, como eu estava com cabeça de alta, eu entrei novamente porque deu uma boa barra especial, uma barra de reversão de alta. Porém, o que estava valendo era realmente a média móvel de uma hora inclinada para baixo e a resistência que ela estava proporcionando.\n\nNesta operação, eu vi que a operação podia dar errado muito provavelmente já na segunda, talvez terceira barra depois da entrada. Mas eu deixei o stop ser atingido por causa de uma regra que eu sempre tenho, que é que eu estou sempre melhor posicionado se eu deixar sair no stop do que abortar alguma operação. Talvez algumas vezes isso tenha que ser revisto.",
+    "expectedBehaviors": [
+      {
+        "text": "Ignorar o contexto principal de baixa porque estava com viés de alta levou a uma nova entrada contra a tendência e ao stop.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "como eu estava com cabeça de alta, eu entrei novamente",
+          "o que estava valendo era realmente a média móvel de uma hora inclinada para baixo e a resistência que ela estava proporcionando",
+          "eu deixei o stop ser atingido"
+        ]
+      },
+      {
+        "text": "Manter disciplina para seguir o stop evitou que ele abortasse a operação no meio, embora a regra possa precisar de revisão em alguns cenários.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu deixei o stop ser atingido por causa de uma regra que eu sempre tenho",
+          "eu estou sempre melhor posicionado se eu deixar sair no stop do que abortar alguma operação"
+        ]
+      },
+      {
+        "text": "Perceber cedo que a operação podia dar errado mostrava leitura de risco, mas não foi suficiente para evitar a perda porque ele permaneceu na posição.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "eu vi que a operação podia dar errado muito provavelmente já na segunda, talvez terceira barra depois da entrada",
+          "eu deixei o stop ser atingido"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Esta operação talvez tenha sido a melhor entrada, porém, ainda assim foi um prejuízo, porque eu achei que o mercado estava revertendo de uma perna climática de alta e uma resistência na média. Depois que eu tomei o stop nessa operação, eu fui ver que a direção estava correta. Porém, a formação da perna deveria ter me indicado que os pullbacks estavam grandes. Porque foi uma perna com várias reversões, lenta, com vários pullbacks, e eu entrei no terceiro pullback depois da média, uma possível formação de cunha, e eu identifiquei que poderia ter mais baixa. Entretanto, a perna não estava com força, não demonstrou força, e logo fez um pullback maior antes de cair com maior força. O pullback fez um topo duplo, e aí sim foi a operação que eu estava esperando.",
+    "expectedBehaviors": [
+      {
+        "text": "Devo evitar entrar cedo em uma reversão quando a perna mostra falta de força, muitos pullbacks e reversões internas, porque isso aumenta a chance de stop antes do movimento verdadeiro.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "\"eu achei que o mercado estava revertendo de uma perna climática de alta e uma resistência na média\"",
+          "\"a formação da perna deveria ter me indicado que os pullbacks estavam grandes\"",
+          "\"foi uma perna com várias reversões, lenta, com vários pullbacks\"",
+          "\"eu entrei no terceiro pullback depois da média\"",
+          "\"a perna não estava com força, não demonstrou força\""
+        ]
+      },
+      {
+        "text": "Devo esperar a confirmação do padrão mais claro, como um topo duplo após o pullback maior, porque isso aumenta a qualidade da entrada.",
+        "type": "do",
+        "evidenceQuotes": [
+          "\"O pullback fez um topo duplo, e aí sim foi a operação que eu estava esperando\"",
+          "\"logo fez um pullback maior antes de cair com maior força\""
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Eu entrei neste trade depois do rompimento, uma perna de dez barras de alta e eu entrei depois do pullback, no momento em que a força já está diminuindo.",
+    "expectedBehaviors": [
+      {
+        "text": "Entrar após o rompimento e depois de uma perna esticada fez a entrada ocorrer com a força já diminuindo, aumentando o risco de comprar no fim do movimento.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Eu entrei neste trade depois do rompimento",
+          "uma perna de dez barras de alta",
+          "eu entrei depois do pullback",
+          "no momento em que a força já está diminuindo"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "A entrada é um retorno à média com um movimento de alta anterior de 15 barras e um pullback de 3 barras de baixa razoavelmente grandes, formando um canal amplo. O rompimento é um spike in channel, saiu do canal estreito e foi para o canal amplo e foi até a média.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconheceu que a entrada era um retorno à média após um impulso prévio e um pullback curto, o que ajudou a interpretar o contexto corretamente.",
+        "type": "do",
+        "evidenceQuotes": [
+          "A entrada é um retorno à média com um movimento de alta anterior de 15 barras e um pullback de 3 barras de baixa razoavelmente grandes"
+        ]
+      },
+      {
+        "text": "Identificou que o rompimento foi um spike in channel e que a saída do canal estreito para o canal amplo levou o preço até a média.",
+        "type": "do",
+        "evidenceQuotes": [
+          "O rompimento é um spike in channel",
+          "saiu do canal estreito e foi para o canal amplo e foi até a média"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Este trade teria sido uma antecipação, uma barra muito forte de alta e uma resposta de baixa fraca, duas barrinhas de baixa. Foi um retorno à média a partir de um gap de abertura muito grande, mas era possível ver que havia possibilidade de cair, tanto que eu coloquei esse trade. Porém, até o sinal decente, a entrada boa foi oito barras depois que eu coloquei esse trade. Então foi prudente esperar pelo sinal melhor. Realmente foi prudente eu não ter entrado neste trade.",
+    "expectedBehaviors": [
+      {
+        "text": "Esperar um sinal de entrada mais claro evita entrar cedo demais em uma antecipação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "foi prudente esperar pelo sinal melhor",
+          "Realmente foi prudente eu não ter entrado neste trade"
+        ]
+      },
+      {
+        "text": "Identificar a possibilidade de queda mesmo após uma forte barra de alta ajuda a avaliar o trade com mais cautela.",
+        "type": "do",
+        "evidenceQuotes": [
+          "uma barra muito forte de alta e uma resposta de baixa fraca",
+          "era possível ver que havia possibilidade de cair"
+        ]
+      },
+      {
+        "text": "Entrar antes do sinal decente leva a uma entrada prematura e menos eficiente.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "a entrada boa foi oito barras depois que eu coloquei esse trade",
+          "uma antecipação"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Como a entrada anterior antecipada que eu fiz parecia que ia falhar, houve um movimento de alta muito forte, uma barra de mais de mil pontos, um pullback pequeno e o mercado começou a acusar uma nova perna de alta. Talvez uma segunda perna de continuação do movimento de alta anterior, mas estava na região da média e isso é muito suspeito, um movimento de continuação que sente uma resistência abaixo da média. Nesses casos é muito melhor esperar que a média seja ultrapassada e ter mais evidência de força compradora. Esse trade eu comprei, mas eu rapidamente vi que ia dar errado e saí com menos de 20 reais de prejuízo. Foi uma boa saída porque logo em seguida, concordando com a minha leitura inicial de que o mercado podia cair, realmente caiu. Foi bom eu ter saído desse trade antecipado porque eu vi que ia dar errado. A barra que eu entrei era uma barra de alta boa, mas quando ela fechou, ela fechou uma barra de reversão de baixa, uma barra especial de baixa, costurando a média, formando uma bela de uma barra de sinal de venda. E eu vi isso e saí.",
+    "expectedBehaviors": [
+      {
+        "text": "Saiu rapidamente da compra antecipada ao perceber sinais de falha, evitando uma perda maior.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu rapidamente vi que ia dar errado e saí com menos de 20 reais de prejuízo",
+          "Foi uma boa saída porque logo em seguida... realmente caiu",
+          "Foi bom eu ter saído desse trade antecipado porque eu vi que ia dar errado"
+        ]
+      },
+      {
+        "text": "Evita entrar em continuação de alta quando o preço está na região da média e ainda há resistência, porque falta evidência de força compradora.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "estava na região da média e isso é muito suspeito",
+          "um movimento de continuação que sente uma resistência abaixo da média",
+          "Nesses casos é muito melhor esperar que a média seja ultrapassada e ter mais evidência de força compradora"
+        ]
+      },
+      {
+        "text": "Reconheceu a reversão de baixa na barra de entrada e usou esse sinal para encerrar a operação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "quando ela fechou, ela fechou uma barra de reversão de baixa, uma barra especial de baixa, costurando a média, formando uma bela de uma barra de sinal de venda",
+          "E eu vi isso e saí"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "O sinal aqui foram três barras de baixa, abaixo da média tocaram e caiu depois de um retorno à média que ficou lento formando uma região de resistência no topo do dia e depois as três barras de baixa na região da média.\n\nEu saí 400 pontos antes do alvo e foi no alvo certinho. Não precisava ter saído antecipado.\n\nEste trade foi o grande trade do dia. Como eu mencionei antes, eu vi o sinal das três barras de baixa junto com a resistência da média, o mercado desacelerando a alta e começando a fazer barras consecutivas de baixa. Eu entrei, ele patinou um pouco, fingiu que ia subir, fez algumas barras de alta, mas as barras fecharam com grandes sombras superiores mostrando que os vendedores estavam ativos. Não houve nenhum fechamento acima da média, o que confirmou a hipótese de que havia força vendedora. E realmente o mercado caiu, eu fui abaixando o stop para a máxima da barra anterior, num trailing stop, e coloquei um alvo. Saí antecipado. Da próxima vez é melhor segurar e deixar que vá no alvo, porque é muito provável que vá.",
+    "expectedBehaviors": [
+      {
+        "text": "Reconhece um sinal de venda forte quando há três barras de baixa na região da média, com resistência no topo e perda de força da alta.",
+        "type": "do",
+        "evidenceQuotes": [
+          "o sinal aqui foram três barras de baixa, abaixo da média tocaram e caiu depois de um retorno à média que ficou lento formando uma região de resistência no topo do dia",
+          "eu vi o sinal das três barras de baixa junto com a resistência da média, o mercado desacelerando a alta e começando a fazer barras consecutivas de baixa"
+        ]
+      },
+      {
+        "text": "Mantém a confiança no cenário vendedor quando as barras de alta fecham com sombras superiores e sem fechamento acima da média.",
+        "type": "do",
+        "evidenceQuotes": [
+          "as barras fecharam com grandes sombras superiores mostrando que os vendedores estavam ativos",
+          "Não houve nenhum fechamento acima da média, o que confirmou a hipótese de que havia força vendedora"
+        ]
+      },
+      {
+        "text": "Deixa o trade desenvolver até o alvo quando a leitura do mercado indica alta probabilidade de continuação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "Eu saí 400 pontos antes do alvo e foi no alvo certinho. Não precisava ter saído antecipado.",
+          "Da próxima vez é melhor segurar e deixar que vá no alvo, porque é muito provável que vá"
+        ]
+      },
+      {
+        "text": "Evita sair antecipadamente, porque isso reduz o resultado de um trade que já estava validado pelo fluxo vendedor.",
+        "type": "dont",
+        "evidenceQuotes": [
+          "Eu saí 400 pontos antes do alvo e foi no alvo certinho.",
+          "Saí antecipado. Da próxima vez é melhor segurar e deixar que vá no alvo, porque é muito provável que vá"
+        ]
+      },
+      {
+        "text": "Usa trailing stop para proteger lucro conforme o movimento confirma a tese, sem encurtar demais a operação.",
+        "type": "do",
+        "evidenceQuotes": [
+          "eu fui abaixando o stop para a máxima da barra anterior, num trailing stop, e coloquei um alvo"
+        ]
+      }
+    ]
+  },
+  {
+    "comment": "Este trade desacelerou e começou a formar sombras superiores numa região de máxima. Desacelerou e começou a dar barras de baixa.",
+    "expectedBehaviors": [
+      {
+        "text": "Ele reconheceu a perda de força perto da máxima e evitou seguir comprado quando surgiram sombras superiores e barras de baixa.",
+        "type": "do",
+        "evidenceQuotes": [
+          "desacelerou e começou a formar sombras superiores numa região de máxima",
+          "Desacelerou e começou a dar barras de baixa"
+        ]
+      }
+    ]
+  }
+]

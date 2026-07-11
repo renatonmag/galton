@@ -7,7 +7,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
-    "eval": "vitest run --config vitest.eval.config.ts"
+    "eval": "vitest run --config vitest.eval.config.ts",
+    "extract:behaviors": "tsx src/scripts/extractBehaviors.ts",
+    "count:behaviors": "tsx src/scripts/countBehaviors.ts"
   },
   "dependencies": {
     "@ai-sdk/devtools": "^1.0.0",
