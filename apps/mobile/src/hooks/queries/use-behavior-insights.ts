@@ -13,7 +13,7 @@ export function usePendingBehaviorInsightsCount() {
   });
 }
 
-export function useReinforceBehaviorInsights() {
+export function useExtractBehaviorInsights() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => parseResponse(api["behavior-insights"].extract.$post()),

@@ -94,26 +94,24 @@ A recurring **behavioral pattern** mined from the free-text **comments** on a us
 | user_id         | uuid      |                                                             |
 | text            | text      | The pattern, one succinct sentence                          |
 | type            | enum      | `do` or `dont` — see below                                  |
-| status          | enum      | `emergent`, `active`, or `dismissed` — see below            |
-| evidence_count  | integer   | How many times the pattern has been sighted                 |
+| status          | enum      | `active` or `dismissed` — see below                         |
+| evidence_count  | integer   | Set to 1 at creation; not mutated afterward                 |
 | evidence_quotes | text[]    | Verbatim comment snippets cited as evidence                 |
-| first_seen      | timestamp |                                                             |
-| last_seen       | timestamp | Bumped on each sighting; drives emergent decay              |
+| first_seen      | timestamp | Creation time                                               |
+| last_seen       | timestamp | Set at creation; no longer bumped                           |
 
-**do vs. dont** (`type`): a **do** is a positive behavior / strength to keep; a **dont** is a mistake, vice, or negative behavior to correct. Every insight is exactly one or the other, fixed when the pattern is first staged.
+**do vs. dont** (`type`): a **do** is a positive behavior / strength to keep; a **dont** is a mistake, vice, or negative behavior to correct. Every insight is exactly one or the other, fixed when the pattern is created.
 
 **Status lifecycle:**
 
-- **emergent** — an *emergent candidate*: the pattern has been sighted exactly **once** (`evidence_count: 1`). Provisional; not yet shown to the user or used by the coach. A single day of comments is never enough to confirm a pattern.
-- **active** — *confirmed*: the pattern was sighted a **second time** on a different session-day, promoting it from emergent. Only active insights feed the Behavior Coach.
+- **active** — the live state. A pattern is created directly as active on its **first** sighting and is immediately shown to the user and used by the Behavior Coach.
 - **dismissed** — reserved. Declared in the enum but not yet written or read by any code today; there is no dismiss action.
 
-**Extraction** is the umbrella process that mines insights from comments. It sweeps each eligible session-day (a session with at least one commented entry that hasn't been processed yet) and runs two independent LLM passes, each gated by its own per-session stamp so it runs at most once per session:
+**Extraction** is the process that mines insights from comments. It sweeps each eligible session-day (a session with at least one commented entry that hasn't been processed yet) and runs a single LLM pass, gated by a per-session stamp so it runs at most once per session:
 
-- **Reinforcement** — re-checks the day's comments against already-**active** insights and bumps `evidence_count` on each one it sees again. Cannot create or promote insights.
-- **Discovery** — looks for patterns that are *not* yet active: it **promotes** a matching emergent candidate to active (its second sighting), or **stages** a genuinely new pattern as a fresh emergent candidate.
+- **Discovery** — reads the day's comments and creates each genuinely new behavioral pattern directly as an **active** insight. It ignores patterns already active and de-duplicates patterns surfaced earlier the same day (both across comments within the day and against the existing active set), so repeated remarks don't create duplicates.
 
-**Emergent decay**: an emergent candidate that goes unseen for a horizon of processed sessions (currently 10) is evicted from discovery consideration, so one-off remarks don't linger as candidates forever.
+`evidence_count` and `last_seen` are set once when a pattern is created and are not updated afterward — there is no reinforcement pass and no promotion.
 
 ### Behavior Coach
 

@@ -1,6 +1,6 @@
 import {
   usePendingBehaviorInsightsCount,
-  useReinforceBehaviorInsights,
+  useExtractBehaviorInsights,
 } from "@/hooks/queries/use-behavior-insights";
 import { useStats } from "@/hooks/queries/use-stats";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
@@ -23,11 +23,11 @@ export default function HomeScreen() {
   useRefreshOnFocus(refetch);
   useRefreshOnFocus(refetchPendingCount);
 
-  const reinforceInsights = useReinforceBehaviorInsights();
+  const extractInsights = useExtractBehaviorInsights();
 
   const handleAnalyzeDays = useCallback(async () => {
     try {
-      const result = await reinforceInsights.mutateAsync();
+      const result = await extractInsights.mutateAsync();
 
       if (result.skipped) {
         Alert.alert("Nada para analisar", "Não há dias novos para analisar no momento.");
@@ -44,12 +44,12 @@ export default function HomeScreen() {
 
       Alert.alert(
         "Dias analisados",
-        `${result.patternsPromoted} novo${result.patternsPromoted === 1 ? "" : "s"} ${patternWord(result.patternsPromoted)} detectado${result.patternsPromoted === 1 ? "" : "s"}, ${result.reinforcementsApplied} ${patternWord(result.reinforcementsApplied)} reforçado${result.reinforcementsApplied === 1 ? "" : "s"}, ${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} analisado${result.sessionsProcessed === 1 ? "" : "s"}.`,
+        `${result.patternsDiscovered} novo${result.patternsDiscovered === 1 ? "" : "s"} ${patternWord(result.patternsDiscovered)} detectado${result.patternsDiscovered === 1 ? "" : "s"}, ${result.sessionsProcessed} dia${result.sessionsProcessed === 1 ? "" : "s"} analisado${result.sessionsProcessed === 1 ? "" : "s"}.`,
       );
     } catch {
       Alert.alert("Erro", "Não foi possível analisar os dias agora. Tente novamente.");
     }
-  }, [reinforceInsights]);
+  }, [extractInsights]);
 
   const ratio =
     stats?.successRatio != null
@@ -95,12 +95,12 @@ export default function HomeScreen() {
         )}
 
         <TouchableOpacity
-          style={[styles.analyzeButton, (!pendingCount || reinforceInsights.isPending) && styles.analyzeButtonDisabled]}
+          style={[styles.analyzeButton, (!pendingCount || extractInsights.isPending) && styles.analyzeButtonDisabled]}
           onPress={handleAnalyzeDays}
-          disabled={!pendingCount || reinforceInsights.isPending}
+          disabled={!pendingCount || extractInsights.isPending}
           hitSlop={8}
         >
-          {reinforceInsights.isPending ? (
+          {extractInsights.isPending ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
             <Text style={styles.analyzeButtonText}>

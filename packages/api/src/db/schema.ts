@@ -16,7 +16,7 @@ import { relations } from "drizzle-orm";
 export const decisionEnum = pgEnum("decision", ["TRADE", "NO_TRADE"]);
 export const resultEnum = pgEnum("result", ["open", "profit", "loss", "breakeven"]);
 export const directionEnum = pgEnum("direction", ["buy", "sell"]);
-export const behaviorInsightStatusEnum = pgEnum("behavior_insight_status", ["active", "dismissed", "emergent"]);
+export const behaviorInsightStatusEnum = pgEnum("behavior_insight_status", ["active", "dismissed"]);
 export const behaviorInsightTypeEnum = pgEnum("behavior_insight_type", ["do", "dont"]);
 
 export const sessions = pgTable("sessions", {
@@ -25,7 +25,6 @@ export const sessions = pgTable("sessions", {
   name: text("name").notNull(),
   openedAt: timestamp("opened_at", { withTimezone: true }).defaultNow().notNull(),
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
-  reinforceProcessed: timestamp("reinforce_processed", { withTimezone: true }),
   newInsightsProcessed: timestamp("new_insights_processed", { withTimezone: true }),
 });
 

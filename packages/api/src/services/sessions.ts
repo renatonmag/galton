@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { db } from "../db/index.js";
 import { sessions, tradeEntries } from "../db/schema.js";
@@ -13,7 +13,6 @@ function listEligibleSessions(userId: string, unprocessedColumns: PgColumn[]) {
     .select({
       id: sessions.id,
       openedAt: sessions.openedAt,
-      reinforceProcessed: sessions.reinforceProcessed,
       newInsightsProcessed: sessions.newInsightsProcessed,
     })
     .from(sessions)
@@ -85,24 +84,7 @@ export const sessionsService = {
   },
 
   listEligibleForForwardPass: async (userId: string) => {
-    return listEligibleSessions(userId, [sessions.reinforceProcessed, sessions.newInsightsProcessed]);
-  },
-
-  listProcessedForDiscovery: async (userId: string) => {
-    return db
-      .select({ id: sessions.id, openedAt: sessions.openedAt })
-      .from(sessions)
-      .where(and(eq(sessions.userId, userId), isNotNull(sessions.newInsightsProcessed)))
-      .orderBy(asc(sessions.openedAt));
-  },
-
-  stampReinforceProcessed: async (sessionIds: string[], executor: Executor = db) => {
-    if (sessionIds.length === 0) return [];
-    return executor
-      .update(sessions)
-      .set({ reinforceProcessed: new Date() })
-      .where(inArray(sessions.id, sessionIds))
-      .returning();
+    return listEligibleSessions(userId, [sessions.newInsightsProcessed]);
   },
 
   stampNewInsightsProcessed: async (sessionIds: string[], executor: Executor = db) => {
