@@ -1,0 +1,112 @@
+[
+  {
+    "voice_message": "Cenário favorecendo baixa, mas fazendo o primeiro pullback de alta.",
+    "behavior_insight": "Reconheceu que compras não eram a melhor opção porque os compradores já tinham perdido interesse após uma perna lenta, evitando insistir contra a fraqueza do dia.",
+    "evidence_quotes": [
+      "eu já deveria ter imaginado que operações compradas neste dia não seriam a melhor opção, pois o mercado já havia deixado uma perna lenta, onde os compradores já haviam perdido o interesse em fazer o mercado voltar para cima."
+    ],
+    "coach_response": "Boa leitura: se o cenário está favorecendo baixa, evitar compras é o caminho certo.",
+    "coach_type": "do",
+    "created_at": "2026-07-14 12:16:24.445146+00"
+  },
+  {
+    "voice_message": "Mercado abriu com gap de baixa e está lateralizado abaixo da média, sombras superiores grandes.",
+    "behavior_insight": "Reconheceu que compras não eram a melhor opção porque os compradores já tinham perdido interesse após uma perna lenta, evitando insistir contra a fraqueza do dia.",
+    "evidence_quotes": [
+      "eu já deveria ter imaginado que operações compradas neste dia não seriam a melhor opção, pois o mercado já havia deixado uma perna lenta, onde os compradores já haviam perdido o interesse em fazer o mercado voltar para cima."
+    ],
+    "coach_response": "Você leu certo: nesse contexto, comprar não é a melhor ideia.",
+    "coach_type": "do",
+    "created_at": "2026-07-13 12:20:42.766171+00"
+  },
+  {
+    "voice_message": "Três barras de baixo na média com sombras superiores e falhas de fechamento acima da média.",
+    "behavior_insight": "Reconheceu corretamente a força vendedora após três barras de baixa na média e confirmou a entrada com sombras superiores e falhas de fechamento acima da média.",
+    "evidence_quotes": [
+      "\"Eu vi o sinal das três barras de baixa junto com a resistência da média, o mercado desacelerando a alta e começando a fazer barras consecutivas de baixa.\""
+    ],
+    "coach_response": "Isso mesmo, você leu a pressão vendedora corretamente; esse é um bom caminho para manter.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 19:10:29.932737+00"
+  },
+  {
+    "voice_message": "Uma barra de reversão de alta depois de uma perna de baixa e um movimento de lateralização deu uma barra de reversão de alta com continuação.",
+    "behavior_insight": "Reconheceu corretamente um retorno à média após forte perna de baixa com reversão de duas barras, confirmando um trade de venda válido.",
+    "evidence_quotes": [
+      "Vinha de uma grande perna de baixa com força, um pullback até a média com uma formação clássica de uma barra que fechou acima da média e a barra seguinte fechando abaixo da média novamente numa reversão de duas barras."
+    ],
+    "coach_response": "Boa leitura: você reconheceu o retorno à média e confirmou a venda com disciplina.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 19:03:23.737669+00"
+  },
+  {
+    "voice_message": "O movimento ficou fraco e lateralizou. Algumas tentativas de movimento de baixa falhando.",
+    "behavior_insight": "Reconheceu a perda de força do mercado e saiu no momento certo, evitando ficar preso em uma lateralização lenta que começou a formar cunha.",
+    "evidence_quotes": [
+      "Foi uma boa saída, porque o mercado começou a ficar muito lento e fazer repetidas tentativas de alta, formando uma cunha"
+    ],
+    "coach_response": "Boa leitura: sair quando o mercado perdeu força foi o certo para evitar ficar preso na lateralização.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 18:56:32.391423+00"
+  },
+  {
+    "voice_message": "Segunda barra de baixa do dia, forte, provavelmente há uma entrada aqui.",
+    "behavior_insight": "Reconheceu uma barra de alta especial após sequência de barras compradoras e entrou, o que permitiu capturar a confirmação imediata do movimento.",
+    "evidence_quotes": [
+      "Então eu comprei nessa barra e a barra seguinte realmente foi a confirmação porque deu continuação em mais uma grande barra de alta."
+    ],
+    "coach_response": "É isso, você identificou o sinal forte e entrou no momento certo.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 18:55:19.790425+00"
+  },
+  {
+    "voice_message": "O mercado virou, caiu até a média depois de dois climaxes.",
+    "behavior_insight": "Reconheceu corretamente um retorno à média após forte perna de baixa com reversão de duas barras, confirmando um trade de venda válido.",
+    "evidence_quotes": [
+      "Vinha de uma grande perna de baixa com força, um pullback até a média com uma formação clássica de uma barra que fechou acima da média e a barra seguinte fechando abaixo da média novamente numa reversão de duas barras."
+    ],
+    "coach_response": "Você leu bem o retorno à média; esse é o tipo de leitura certa para seguir.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 15:32:51.094681+00"
+  },
+  {
+    "voice_message": "O mercado fez um pullback na média, deu entrada e foi até a máxima anterior, que ainda também é a máxima do dia. Será que eu entro ou não?",
+    "behavior_insight": "Esperou a pressão compradora e a confirmação do rompimento antes de comprar, o que tornou a entrada mais bem fundamentada.",
+    "evidence_quotes": [
+      "eu esperei uma pressão compradora acontecer e a barra romper a máxima da barra anterior."
+    ],
+    "coach_response": "Isso mesmo: esperar a pressão compradora e a confirmação do rompimento é o caminho mais seguro.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 15:30:57.123717+00"
+  },
+  {
+    "voice_message": "O mercado fez uma perna de alta forte e agora está fazendo um pullback na média. Ele deixou uma reversão de duas barras costurando a média, fechou abaixo, fechou acima, barra de sinal.",
+    "behavior_insight": "Identificou a retomada acima da média após um falso fechamento abaixo dela, o que reforçou a validade do sinal.",
+    "evidence_quotes": [
+      "\"na segunda barra, que passou, fechou abaixo da média, já voltou a fechar acima da média de novo\""
+    ],
+    "coach_response": "Boa leitura: a retomada acima da média confirmou o sinal, esse é o caminho certo.",
+    "coach_type": "do",
+    "created_at": "2026-07-12 15:29:13.65656+00"
+  },
+  {
+    "voice_message": "Eu tenho quase certeza que vai dar uma operação de compra agora. Estou querendo entrar.",
+    "behavior_insight": "Deixou de entrar em uma nova barra forte de alta, perdendo um sinal positivo que poderia ter gerado um trade.",
+    "evidence_quotes": [
+      "Mas a próxima entrada foi uma barra boa de alta que eu não entrei. Mas foi um sinal positivo que daria um trade."
+    ],
+    "coach_response": "Cuidado: deixar de entrar numa nova barra forte de alta agora pode fazer você perder um bom sinal de compra.",
+    "coach_type": "dont",
+    "created_at": "2026-07-12 13:11:26.873707+00"
+  },
+  {
+    "voice_message": "Terceira tentativa de romper pra cima no início do dia que falha, começando a mostrar uma possível reversão.",
+    "behavior_insight": "Identificou o trade no começo e percebeu que uma entrada antecipada teria evitado um stop caro e possivelmente terminado em break even.",
+    "evidence_quotes": [
+      "O trade eu vi quando ele começou, e se eu tivesse entrado nele, teria prevenido que eu entrasse mais tarde, com um stop mais caro, e a operação teria sido um break even ao invés do stop que foi."
+    ],
+    "coach_response": "Boa leitura cedo; entrar antes teria evitado um stop caro e talvez até um break even.",
+    "coach_type": "dont",
+    "created_at": "2026-07-12 12:56:43.266746+00"
+  }
+]

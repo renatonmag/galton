@@ -12,15 +12,17 @@ const discoverySchema = z.object({
 
 const DISCOVERY_SYSTEM_PROMPT = `Este é um comentário de um diário de trade. Extraia deste texto os principais padrões comportamentais.
 
-Um padrão é um pensamento completo, com causa e consequência. Não repita padrões semelhantes.
+Um padrão é uma ação individual que o trader faz. Não repita padrões semelhantes.
 
 Classifique cada padrão em "type":
 - "do": comportamento positivo, uma força ou acerto do trader que deve ser mantido.
 - "dont": erro, vício ou comportamento negativo que o trader deveria corrigir.
 
 Regras:
-- Cada "text" deve ter no máximo 1 frase sucinta e objetiva que descreva o comportamento, incluindo causa e consequência.
-- Para cada padrão, preencha "evidenceQuote" com uma citação literal do comentário que evidencia o padrão.
+- Cada "text" deve ter no máximo 1 frase sucinta e objetiva com algumas palavras que descreva o comportamento apenas o padrão.
+- Essa frase deve ser como uma identidade, curtissma.
+- Não inclua na frase quando ele acontece ou porque ele acontece.
+- Para cada padrão, preencha "evidenceQuote" com uma ou mas citações literais do comentário que evidencia o padrão.
 - Não repita padrões semelhantes — cada padrão deve ser distinto.
 - Se nenhum padrão novo aparecer neste comentário, deixe a lista vazia.
 
@@ -37,11 +39,11 @@ Além disso, classifique cada padrão novo em "type":
 Não misture os dois — todo item em "patterns" deve trazer o "type" correto.
 
 Exemplos de padrões bem formulados:
-- Entrou pelo espaço disponível, mas reconhece que o timing foi ruim porque a reversão já estava clara três barras antes.
-- Percebeu sinais técnicos de confirmação antes da entrada, indicando que deveria ter antecipado o trade no ponto mais forte da lateralidade.
-- Deixou de aproveitar uma entrada tardia ainda válida, e isso reduziu sua participação em um movimento que seguiu forte.
-- Entrou impulsivamente em uma barra climática muito grande, o que levou a um trade exaustivo e encerrado em break even.
-- Reconheceu a fraqueza do movimento de alta e saiu da operação, evitando tomar stop.`;
+- Sair no alvo.
+- Aguardar confirmação de força.
+- Reconhecer quando a pressão contrária está mais forte.
+- Ler microestruturas de continuação.
+- Entrar tarde.`;
 
 function serializeComment(comment: string): string {
   return `Comentário: "${comment}"`;
