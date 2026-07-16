@@ -1,4 +1,6 @@
 import { AddSessionItemFab } from "@/components/add-session-item-fab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Text as UiText } from "@/components/ui/text";
 import {
   useDeleteTradeEntry,
   useTradeEntries,
@@ -205,6 +207,7 @@ export default function SessionScreen() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [editMode, setEditMode] = useState(false);
+  const [tab, setTab] = useState<"trades" | "notes">("trades");
 
   const { data: entries = [], isLoading, isError, refetch } = useTradeEntries(id);
   const { data: voiceNotes = [] } = useVoiceNotes(id);
@@ -217,10 +220,10 @@ export default function SessionScreen() {
   const markReviewed = useMarkSessionReviewed();
   const reopenReview = useReopenSessionReview();
 
-  const timeline = [
-    ...entries.map((entry) => ({ kind: "trade" as const, createdAt: entry.createdAt, entry })),
-    ...voiceNotes.map((note) => ({ kind: "note" as const, createdAt: note.createdAt, note })),
-  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const byCreatedAt = (a: { createdAt: string }, b: { createdAt: string }) =>
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  const sortedEntries = [...entries].sort(byCreatedAt);
+  const sortedNotes = [...voiceNotes].sort(byCreatedAt);
 
   const toggleReview = useCallback(() => {
     if (session?.reviewedAt) {
@@ -330,34 +333,58 @@ export default function SessionScreen() {
               <Button onPress={() => refetch()}>Retry</Button>
             </YStack>
           ) : (
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ gap: 10, paddingBottom: 96 }}
+            <Tabs
+              value={tab}
+              onValueChange={(v) => setTab(v as "trades" | "notes")}
+              style={{ flex: 1 }}
             >
-              {timeline.map((item) =>
-                item.kind === "trade" ? (
-                  <TradeCard
-                    key={item.entry.id}
-                    entry={item.entry}
-                    editMode={editMode}
-                    onDelete={() => deleteEntry(item.entry.id)}
-                    onTap={() =>
-                      router.push({
-                        pathname: "/(tabs)/sessions/[id]/edit",
-                        params: { id, entryId: item.entry.id },
-                      })
-                    }
-                  />
-                ) : (
-                  <VoiceNoteCard
-                    key={item.note.id}
-                    note={item.note}
-                    editMode={editMode}
-                    onDelete={() => deleteNote(item.note.id)}
-                  />
-                ),
-              )}
-            </ScrollView>
+              <TabsList>
+                <TabsTrigger value="trades">
+                  <UiText>Trades</UiText>
+                </TabsTrigger>
+                <TabsTrigger value="notes">
+                  <UiText>Notes</UiText>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="trades" style={{ flex: 1 }}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 10, paddingTop: 12, paddingBottom: 96 }}
+                >
+                  {sortedEntries.map((entry) => (
+                    <TradeCard
+                      key={entry.id}
+                      entry={entry}
+                      editMode={editMode}
+                      onDelete={() => deleteEntry(entry.id)}
+                      onTap={() =>
+                        router.push({
+                          pathname: "/(tabs)/sessions/[id]/edit",
+                          params: { id, entryId: entry.id },
+                        })
+                      }
+                    />
+                  ))}
+                </ScrollView>
+              </TabsContent>
+
+              <TabsContent value="notes" style={{ flex: 1 }}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 10, paddingTop: 12, paddingBottom: 96 }}
+                >
+                  {sortedNotes.map((note) => (
+                    <VoiceNoteCard
+                      key={note.id}
+                      note={note}
+                      editMode={editMode}
+                      onDelete={() => deleteNote(note.id)}
+                    />
+                  ))}
+                </ScrollView>
+              </TabsContent>
+            </Tabs>
           )}
         </YStack>
       </SafeAreaView>
