@@ -34,6 +34,10 @@ export type TradeEntry = InferResponseType<
   200
 >["tradeEntries"][number];
 export type Stats = InferResponseType<typeof api.stats.$get, 200>;
+export type BehaviorInsight = InferResponseType<
+  (typeof api)["behavior-insights"]["$get"],
+  200
+>["insights"][number];
 export type UserPreferences = InferResponseType<
   (typeof api)["user-preferences"]["$get"],
   200

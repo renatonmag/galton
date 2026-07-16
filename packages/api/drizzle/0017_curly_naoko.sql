@@ -1,0 +1,2 @@
+CREATE TYPE "public"."behavior_insight_source" AS ENUM('discovered', 'authored');--> statement-breakpoint
+ALTER TABLE "behavior_insights" ADD COLUMN "source" "behavior_insight_source" DEFAULT 'discovered' NOT NULL;

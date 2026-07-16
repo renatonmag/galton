@@ -33,4 +33,5 @@ export const queryKeys = {
   dailyReports: ["daily-reports"] as const,
   dailyReport: (date: string) => ["daily-reports", date] as const,
   behaviorInsightsPendingCount: ["behavior-insights", "pending-count"] as const,
+  behaviorInsights: ["behavior-insights"] as const,
 };

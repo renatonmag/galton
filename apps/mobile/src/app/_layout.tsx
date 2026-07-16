@@ -111,6 +111,7 @@ export default function RootLayout() {
             name="settings"
             options={{ presentation: "modal", headerShown: false }}
           />
+          <Stack.Screen name="behaviors" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
         <PortalHost />

@@ -108,6 +108,14 @@ export default function HomeScreen() {
             </Text>
           )}
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.behaviorsButton}
+          onPress={() => router.push("/behaviors")}
+          hitSlop={8}
+        >
+          <Text style={styles.behaviorsButtonText}>Behaviors</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -222,5 +230,19 @@ const styles = StyleSheet.create({
   },
   analyzeButtonDisabled: {
     opacity: 0.4,
+  },
+  behaviorsButton: {
+    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BLUE,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  behaviorsButtonText: {
+    color: DARK_BLUE,
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

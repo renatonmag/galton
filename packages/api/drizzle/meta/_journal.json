@@ -120,6 +120,13 @@
       "when": 1783860375907,
       "tag": "0016_damp_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1784198531346,
+      "tag": "0017_curly_naoko",
+      "breakpoints": true
     }
   ]
 }

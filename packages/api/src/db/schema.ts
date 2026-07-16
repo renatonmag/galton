@@ -18,6 +18,7 @@ export const resultEnum = pgEnum("result", ["open", "profit", "loss", "breakeven
 export const directionEnum = pgEnum("direction", ["buy", "sell"]);
 export const behaviorInsightStatusEnum = pgEnum("behavior_insight_status", ["active", "dismissed"]);
 export const behaviorInsightTypeEnum = pgEnum("behavior_insight_type", ["do", "dont"]);
+export const behaviorInsightSourceEnum = pgEnum("behavior_insight_source", ["discovered", "authored"]);
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -94,6 +95,7 @@ export const behaviorInsights = pgTable("behavior_insights", {
   firstSeen: timestamp("first_seen", { withTimezone: true }).defaultNow().notNull(),
   lastSeen: timestamp("last_seen", { withTimezone: true }).defaultNow().notNull(),
   status: behaviorInsightStatusEnum("status").notNull().default("active"),
+  source: behaviorInsightSourceEnum("source").notNull().default("discovered"),
 });
 
 export const sessionsRelations = relations(sessions, ({ many }) => ({
